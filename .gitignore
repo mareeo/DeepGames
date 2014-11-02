@@ -41,3 +41,6 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Don't include vendor folder
+api/vendor
