@@ -14,7 +14,8 @@ use DeepGames\LivestreamInterface;
 require('vendor/autoload.php');
 require('config.php');
 
-if(php_sapi_name() !== 'cli') {
+
+if(!is_cli()) {
     header("HTTP/1.0 404 Not Found");
     exit;
 }
@@ -30,4 +31,8 @@ $twitchInterface->getChannelData("deepgamers");
 
 $livestreamInterface = new LivestreamInterface($pdo);
 $livestreamInterface->getChannelData("deepgamers");
+
+function is_cli() {
+  return !isset($_SERVER['SERVER_SOFTWARE']);
+}
 
