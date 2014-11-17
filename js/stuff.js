@@ -54,11 +54,6 @@ $(function () {
 
    });
 
-   $("#sideMenu").mCustomScrollbar({
-      theme: "minimal",
-      scrollInertia: 0
-   });
-
    $("#showOfflineButton").click(function(event) {
       $("#offlineChannels").toggle();
 
