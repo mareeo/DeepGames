@@ -86,7 +86,7 @@ SQL
 
     private function getPlayerCode($channel) {
 
-        $playerCode = '<iframe frameborder="0" scrolling="no" width="100%" height="100%" src="http://new2.deepgamers.com/lsPlayer.php?channel='.$channel.'"></iframe>';
+        $playerCode = '<iframe frameborder="0" scrolling="no" width="100%" height="100%" src="http://localhost/newdeep/lsPlayer.php?channel='.$channel.'"></iframe>';
 
         return $playerCode;
 

@@ -68,7 +68,10 @@ SQL
 
     $results = $query->fetchAll(PDO::FETCH_ASSOC);
 
-    $output = [];
+    $output = [
+        "live" => [],
+        "notLive" => []
+    ];
 
     foreach($results as $result) {
         if($result['live']) {
@@ -100,4 +103,3 @@ function cmp($a, $b) {
 		return 1;
 	return -1;
 }
-
