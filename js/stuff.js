@@ -54,11 +54,6 @@ $(function () {
 
    });
 
-   $("#sideMenu").mCustomScrollbar({
-      theme: "minimal",
-      scrollInertia: 0
-   });
-
    $("#showOfflineButton").click(function(event) {
       $("#offlineChannels").toggle();
 
@@ -280,6 +275,7 @@ function fitPlayer() {
    var difference = initialPageWidth - $(window).width();
 
    if(difference != 0) {
+      console.log("Difference of " + difference);
       $("#leftContainer").width(width - difference);
    }
 
