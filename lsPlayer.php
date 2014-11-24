@@ -33,7 +33,7 @@ $CHANNEL = $_GET['channel'];
 
    <link rel="shortcut icon" href="http://www.deepgamers.com/images/favicon.ico" />
 
-   <script src="jquery-2.1.0.min.js"></script>
+   <script src="js/jquery-2.1.1.min.js"></script>
    <script type="text/javascript" src="js/jquery-ui.min.js"></script>
    <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.24.custom.css" rel="Stylesheet" />
    <script>

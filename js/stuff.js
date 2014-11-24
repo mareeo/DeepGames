@@ -7,7 +7,7 @@
 
 
 var currentChannel = {};
-var initialLoad = false;
+var isFirstLoad = true;
 var initialTimeout;
 
 var channelData = {
@@ -16,12 +16,15 @@ var channelData = {
    hitbox: {}
 };
 
-setInterval("getTeam()", 90000);
+setInterval("getTeam()", 70000);
 
 /*
  * Set up everything on document ready
  */
 $(function () {
+
+
+
    getTeam();
 
 
@@ -63,6 +66,7 @@ $(function () {
          $("#showOfflineButton").html('Hide Offline Channels');
       }
       fitPlayer();
+
    });
 
 
@@ -85,11 +89,10 @@ function getTeam() {
       url: "api/channels",
 
       beforeSend: function() {
-         if(!initialLoad) {
-            var source   = $("#loading-template").html();
-            var template = Handlebars.compile(source);
+         if(isFirstLoad) {
+            var loadingTemplate = Handlebars.compile($("#loading-template").html());
 
-            var html = template(source);
+            var html = loadingTemplate();
             $("#player").html(html);
             $("#liveSelectors").html(html);
 
@@ -98,133 +101,186 @@ function getTeam() {
 
       //Once we have the info
       success: function (data) {
+         var newlyLiveChannels = processData(data);
          showTeam(data);
-         if (!initialLoad) {
-            initialLoad = true;
+         if (isFirstLoad) {
+            isFirstLoad = false;
             pickFirstChannel();
+         } else {
+            if(newlyLiveChannels.length > 0) {
+               var message = makeNotificationMessage(newlyLiveChannels);
+               notify(message);
+               playSound();
+            }
          }
+         fitPlayer();
       }
    });
 }
+
+
+/**
+ * Process channel data
+ * @param data
+ */
+function processData(data) {
+
+   // Copy the old channel data
+   var oldData = jQuery.extend(true, {}, channelData);
+   var newlyLive = [];
+
+   channelData = {
+      livestream: {},
+      twitch: {},
+      hitbox: {}
+   };
+
+   // For every live channel
+   $.each(data.live, function (index, channel) {
+
+      // If we didn't have data for this channel before, it's newly live
+      if(!(channel.name in oldData[channel.service])) {
+         console.log("Data doesn't exists for " + channel.service + channel.name);
+         newlyLive.push(channel.name);
+
+      // If we did have data for this channel before and it wasn't live, it's newly live
+      } else if (!oldData[channel.service][channel.name].live) {
+         console.log("Data existed but wasn't live for" + channel.service + channel.name);
+         newlyLive.push(channel.name);
+      }
+
+      // Update our local data
+      channelData[channel.service][channel.name] = channel;
+
+      // If this is the current channel, update the currentChannel variable.
+      if(channel.name == currentChannel.name && channel.service == currentChannel.service) {
+         currentChannel = channel;
+      }
+
+
+   });
+
+   // For every non-live channel
+   $.each(data.notLive, function (index, channel) {
+
+      // Update our local data
+      channelData[channel.service][channel.name] = channel;
+
+      // If this is the current channel, update the currentChannel variable.
+      if(channel.name == currentChannel.name && channel.service == currentChannel.service) {
+         currentChannel = channel;
+      }
+   });
+
+   return newlyLive;
+
+}
+
+/**
+ * Play a sound for a newly live channel
+ * @param data
+ */
+function playSound() {
+      var snd = new Audio("incomingGame.ogg");
+      snd.volume = 0.5;
+      snd.play();
+}
+
 
 /*
  * Update the sidemenu with the new Hitbox team information
  */
-function showTeam(data) {
-
+function showTeam() {
 
    var liveDiv = $("#liveSelectors");
-   liveDiv.empty();
-
    var offDiv = $("#offlineSelectors");
+
+   // Compile templates
+   var liveTemplate = Handlebars.compile($("#selector-template").html());
+   var offlineTemplate = Handlebars.compile($("#offlineSelector-template").html());
+
+   // Empty existing divs
+   liveDiv.empty();
    offDiv.empty();
 
-   var source   = $("#selector-template").html();
-   var template = Handlebars.compile(source);
+   // For every service
+   $.each(channelData, function(service, channels) {
 
-   var source2 = $("#offlineSelector-template").html();
-   var template2 = Handlebars.compile(source2);
+      // For every channel
+      $.each(channels, function(index, channel) {
+         var html;
+         var targetDiv;
 
+         // Render the appropriate template based upon live status
+         if(channel.live) {
+            html = liveTemplate(channel);
+            targetDiv = liveDiv;
+         } else {
+            html = offlineTemplate(channel);
+            targetDiv = offDiv;
+         }
 
+         // Attach the channel data to the div
+         html = $(html);
+         var selectorDiv = $(html.children()[0]);
+         selectorDiv.data("channel", channel);
 
-   $.each(data.live, function (index, channel) {
+         // Add the "current" class if this is the current channel
+         if(channel == currentChannel) {
+            selectorDiv.addClass("current");
+         }
 
-      channelData[channel.service][channel.name] = channel;
-
-
-
-
-
-
-      var html = template(channel);
-      html = $(html);
-
-      var selectorDiv = $(html.children()[0]);
-
-      selectorDiv.data("channel", channel);
-
-      if(channel.name == currentChannel.name && channel.service == currentChannel.service) {
-         currentChannel = channel;
-         selectorDiv.addClass("current");
-      }
-
-
-      liveDiv.append(html);
-
-   });
-
-   if (data.live.length == 0) {
-      liveDiv.append("No live channels...");
-   }
-
-   $.each(data.notLive, function (index, channel) {
-
-      channelData[channel.service][channel.name] = channel;
-
-      var html = template2(channel);
-      html = $(html);
-
-      var selectorDiv = $(html.children()[0]);
-
-      selectorDiv.data("channel", channel);
-
-      if(channel.name == currentChannel.name && channel.service == currentChannel.service) {
-         currentChannel = channel;
-         selectorDiv.addClass("current");
-      }
-
-
-      offDiv.append(html);
-
+         // Add the newly created element
+         targetDiv.append(html);
+      });
 
    });
 
-
-
+   // Create and bind the click event for channel selectors
    $(".selector").click(function (event) {
 
+      // Get the div of the channel selector
       var targetDiv = $(event.target).closest('div.selector');
-      targetDiv.addClass('current');
 
-
-      console.log(targetDiv);
-
+      // Get channel data attached to the div
       var channelData = targetDiv.data('channel');
 
-      $(".current").removeClass('current');
-      targetDiv.addClass('current');
+      // Change the channel
+      var success = changeChannel(channelData);
 
-      console.log($(event.target));
-
-      console.log(channelData);
-
-      var channel = $(this).attr('id').split('-');
-      changeChannel(channelData);
+      // If it was changed successfully, update the current channel
+      if(success) {
+         $(".current").removeClass('current');
+         targetDiv.addClass('current');
+      } else {
+         console.error("Error changing channel!");
+      }
 
    });
-
 }
 
 
 /*
- * Changes the player and chat to the channel passed
+ * Changes the player and chat to the channel passed.
+ *
+ * Returns true on success, false on failure
  */
 function changeChannel(channelData) {
 
-   if(currentChannel.service == channelData.service &&
-      currentChannel.channel == channelData.name) {
+   // Do nothing if changing to the current channel
+   if(currentChannel == channelData) {
       return false;
    }
 
+   // Update currentChannel
    currentChannel = channelData;
 
+   // Remove the old current, and set this channel's selector to current
    var divName = currentChannel.service + "-" + currentChannel.name;
-
    $(".current").removeClass('current');
    $("#"+divName).addClass('current');
 
-   console.log(divName);
-
+   // Update the player and chat code
    $("#player").html(currentChannel.player_code);
    $("#chat").html(currentChannel.chat_code);
 
@@ -365,3 +421,39 @@ function getLiveChannels() {
    return liveChannels;
 
 }
+
+
+function makeNotificationMessage(channels) {
+   if(channels.length == 1) {
+      return channels[0] + " just went live!";
+   }
+
+   if(channels.length == 2) {
+      return channels[0] + " and " + channels[1] + " just went live!";
+   }
+
+   var message = '';
+   for(i=0; i<channels.length-1; i++) {
+      message += channels[i] + ", ";
+   }
+
+   message += "and " + channels[channels.length-1] + " just went live!";
+
+   return message;
+}
+
+function notify(text) {
+   //$.notify(text, {
+   //   globalPosition: 'top center',
+   //   autoHide: false,
+   //   className: "deepNotification"
+   //});
+
+   humane.log(text, {
+      timeout: 7500,
+      clickToClose: true,
+      addnCls: 'deepNotification'
+   });
+}
+
+
