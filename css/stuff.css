@@ -6,6 +6,9 @@ body, input {
    color: #FFFFFF;
    margin: 5px 0px;
    font-family: "Open Sans", "sans-serif";
+}
+
+body {
    min-width: 480px;
 }
 
@@ -432,4 +435,13 @@ div.deepNotification {
 
 div.deepNotification:hover{
    opacity: 0.9;
+}
+
+#configDialog {
+   border:1px solid #24424d;
+   background-color: #303030;
+   padding: 5px;
+   position: absolute;
+   box-shadow: 2px 2px 3px black;
+   font-size: 11px;
 }

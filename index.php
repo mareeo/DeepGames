@@ -62,6 +62,17 @@
          <img src="images/loading.gif" /><br>Loading...
       </div>
    </script>
+
+   <script id="config-dialog" type="text/x-handlebars-template">
+      <div id="configDialog">
+         <input type="checkbox" id="autoSwitchCheck" {{#autoSwitch}}checked{{/autoSwitch}}/><label for="autoSwitchCheck"> Enable auto switch</label><br>
+         <input type="checkbox" id="liveChannelNoteCheck" {{#liveChannelNotification}}checked{{/liveChannelNotification}}/><label for="liveChannelNoteCheck"> Enable visual notification for new live channels</label><br>
+         <input type="checkbox" id="liveToneCheck" {{#liveChannelTone}}checked{{/liveChannelTone}}/><label for="liveToneCheck"> Enable live channel sound</label><br>
+         Live channel sound volume<br>
+         <i class="fa fa-volume-off"></i> <input id="toneVolume" type="range" min="0" max="1" step="0.05" value="{{toneVolume}}"style="height:11px; margin: 1px;"/> <i class="fa fa-volume-up"></i><br>
+         <button class="flat-button" id="saveButton" style="width: 100%">Save</button>
+      </div>
+   </script>
    <!--END CLIENT SIDE TEMPLATES-->
 
 
@@ -80,6 +91,7 @@
          <button class='flat-button' id="toggleChat"><i class="fa fa-caret-square-o-right"></i> Toggle Chat</button>
          <button class='flat-button'><i class="fa fa-video-camera"></i> Popout Player</button>
          <button class='flat-button'><i class="fa fa-comment"></i> Popout Chat</button>
+         <button class='flat-button' id="settingsButton"><i class="fa fa-cog"></i> Change Settings</button>
       </div>
       <div id="content">
          <div id="liveChannels">

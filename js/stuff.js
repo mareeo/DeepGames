@@ -16,12 +16,50 @@ var channelData = {
    hitbox: {}
 };
 
+var Config = {
+   autoSwitch: false,
+   liveChannelNotification: true,
+   liveChannelTone: true,
+   toneVolume: 0.5,
+
+
+   save: function() {
+      localStorage.setItem('autoSwitch', this.autoSwitch);
+      localStorage.setItem('liveChannelNotification', this.liveChannelNotification);
+      localStorage.setItem('liveChannelTone', this.liveChannelTone);
+      localStorage.setItem('toneVolume', this.toneVolume);
+   },
+
+   load: function() {
+      var stored = localStorage.getItem('autoSwitch');
+      if(stored !== null)
+         this.autoSwitch = stored;
+
+      stored = localStorage.getItem("liveChannelNotification");
+      if(stored !== null)
+         this.liveChannelNotification = stored;
+
+      stored = localStorage.getItem("liveChannelTone");
+      if(stored !== null)
+         this.liveChannelTone = stored;
+
+      stored = localStorage.getItem("toneVolume");
+      if(stored !== null)
+         this.toneVolume = stored;
+
+   }
+
+
+};
+
 setInterval("getTeam()", 70000);
 
 /*
  * Set up everything on document ready
  */
 $(function () {
+
+   Config.load();
 
 
 
@@ -43,6 +81,42 @@ $(function () {
 
    $("#toggleChat").click(function () {
       toggleChat();
+   });
+
+   var configTemplate = Handlebars.compile($("#config-dialog").html());
+
+   $("#settingsButton").click(function(event) {
+
+      if($("#configDialog").length > 0) {
+         $("#configDialog").remove();
+         return;
+      }
+
+      $("#configDialog").remove();
+
+
+      var html = $(configTemplate(Config));
+
+      html.find("#saveButton").click(function() {
+         Config.autoSwitch = $("#autoSwitchCheck").is(":checked");
+         Config.liveChannelNotification = $("#liveChannelNoteCheck").is(":checked");
+         Config.liveChannelTone = $("#liveToneCheck").is(":checked");
+         Config.toneVolume = $("#toneVolume").val();
+         Config.save();
+         $("#configDialog").remove();
+
+      });
+
+
+
+      $('body').append(html);
+      $("#configDialog").css("top", event.pageY);
+      $("#configDialog").css("left",event.pageX - $("#configDialog").width()-20);
+
+      fitPlayer();
+
+
+
    });
 
    $(".deepSelector").click(function (event) {
@@ -107,10 +181,16 @@ function getTeam() {
             isFirstLoad = false;
             pickFirstChannel();
          } else {
+            console.log(newlyLiveChannels);
             if(newlyLiveChannels.length > 0) {
-               var message = makeNotificationMessage(newlyLiveChannels);
-               notify(message);
-               playSound();
+               if(Config.liveChannelNotification) {
+                  var message = makeNotificationMessage(newlyLiveChannels);
+                  notify(message);
+               }
+
+               if(Config.liveChannelTone) {
+                  playSound();
+               }
             }
          }
          fitPlayer();
@@ -182,7 +262,7 @@ function processData(data) {
  */
 function playSound() {
       var snd = new Audio("incomingGame.ogg");
-      snd.volume = 0.5;
+      snd.volume = Config.toneVolume;
       snd.play();
 }
 
@@ -268,9 +348,9 @@ function showTeam() {
 function changeChannel(channelData) {
 
    // Do nothing if changing to the current channel
-   if(currentChannel == channelData) {
-      return false;
-   }
+   //if(currentChannel == channelData) {
+   //   return false;
+   //}
 
    // Update currentChannel
    currentChannel = channelData;
