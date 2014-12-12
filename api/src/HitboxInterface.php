@@ -136,7 +136,7 @@ SQL
             'game'         => $data->livestream[0]->category_name,
             'live'         => (bool)$data->livestream[0]->media_is_live,
             'player_code'  => '<iframe width="100%" height="100%" src="http://hitbox.tv/#!/embed/' . $channel . '?autoplay=true" frameborder="0" allowfullscreen></iframe>',
-            'chat_code'    => '<iframe width="100%" height="100%" src="http://www.hitbox.tv/embedchat/' . $channel . '" frameborder="0" allowfullscreen></iframe>',
+            'chat_code'    => '<iframe width="100%" height="100%" src="http://www.hitbox.tv/embedchat/' . $channel . '?autoconnect=true" frameborder="0" allowfullscreen></iframe>',
             'service'      => 'hitbox'
         );
 

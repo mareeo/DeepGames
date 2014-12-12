@@ -89,8 +89,8 @@
       </div>
       <div style="text-align: right;">
          <button class='flat-button' id="toggleChat"><i class="fa fa-caret-square-o-right"></i> Toggle Chat</button>
-         <button class='flat-button'><i class="fa fa-video-camera"></i> Popout Player</button>
-         <button class='flat-button'><i class="fa fa-comment"></i> Popout Chat</button>
+         <button class='flat-button' id="popoutPlayer"><i class="fa fa-video-camera"></i> Popout Player</button>
+         <button class='flat-button' id="popoutChat"><i class="fa fa-comment"></i> Popout Chat</button>
          <button class='flat-button' id="settingsButton"><i class="fa fa-cog"></i> Change Settings</button>
       </div>
       <div id="content">

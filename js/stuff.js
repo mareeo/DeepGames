@@ -143,6 +143,13 @@ $(function () {
 
    });
 
+   $("#popoutChat").click(function() {
+      popoutChat();
+   });
+   $("#popoutPlayer").click(function() {
+      popoutPlayer();
+   });
+
 
    fitPlayer();
    window.onresize = fitPlayer;
@@ -536,4 +543,51 @@ function notify(text) {
    });
 }
 
+function popoutChat() {
+   channel = currentChannel.name.toLowerCase();
+   if(currentChannel.service == "livestream") {
+      window.open (
+         "http://cdn.livestream.com/chat/LivestreamChat.swf?&channel="+channel,
+         "",
+         "status=0,toolbar=0,location=0,scrollbars=0,height=600,width=350"
+      );
+
+   } else if(currentChannel.service == "twitch") {
+      window.open (
+         "http://twitch.tv/"+channel+"/chat",
+         "",
+         "status=0,toolbar=0,location=0,scrollbars=0,height=600,width=350"
+      );
+   } else if (currentChannel.service == "hitbox") {
+      window.open (
+         "http://www.hitbox.tv/embedchat/"+channel+"?autoconnect=true",
+         "",
+         "status=0,toolbar=0,location=0,scrollbars=0,height=600,width=350"
+      );
+   }
+}
+
+function popoutPlayer() {
+   channel = currentChannel.name.toLowerCase();
+   if(currentChannel.service == "livestream") {
+      window.open (
+         "lsPlayer.php?channel="+$channel,
+         "",
+         "status=0,toolbar=0,location=0,scrollbars=0,height=480,width=840"
+      );
+
+   } else if(currentChannel.service == "twitch") {
+      window.open (
+         "http://www.twitch.tv/widgets/live_embed_player.swf?channel="+$channel,
+         "",
+         "status=0,toolbar=0,location=0,scrollbars=0,height=480,width=840"
+      );
+   } else if (currentChannel.service == "hitbox") {
+      window.open (
+         "http://hitbox.tv/#!/embed/"+channel+"?autoplay=true",
+         "",
+         "status=0,toolbar=0,location=0,scrollbars=0,height=480,width=840"
+      );
+   }
+}
 
