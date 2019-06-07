@@ -1,0 +1,21 @@
+{
+    "name": "mareeo/deepgamers.com",
+    "description": "Deep Games website",
+    "type": "project",
+    "require": {
+        "slim/slim": "4.0.0-alpha",
+        "nyholm/psr7": "^1.1",
+        "nyholm/psr7-server": "^0.3.0"
+    },
+    "authors": [
+        {
+            "name": "Dustin Hibbard",
+            "email": "dman99@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "DeepGamers\\": "src/"
+        }
+    }
+}
