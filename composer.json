@@ -3,9 +3,12 @@
     "description": "Deep Games website",
     "type": "project",
     "require": {
-        "slim/slim": "4.0.0-alpha",
+        "slim/slim": "4.0.0-beta",
         "nyholm/psr7": "^1.1",
-        "nyholm/psr7-server": "^0.3.0"
+        "nyholm/psr7-server": "^0.3.0",
+        "guzzlehttp/guzzle": "^6.3",
+        "ext-json": "*",
+        "opis/json-schema": "^1.0"
     },
     "authors": [
         {
