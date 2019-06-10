@@ -8,7 +8,9 @@
         "nyholm/psr7-server": "^0.3.0",
         "guzzlehttp/guzzle": "^6.3",
         "ext-json": "*",
-        "opis/json-schema": "^1.0"
+        "opis/json-schema": "^1.0",
+        "php": "^7.1",
+        "ext-pdo": "*"
     },
     "authors": [
         {

@@ -15,6 +15,12 @@ class StreamInfo
     public $title;
 
     /** @var string */
+    public $game;
+
+    /** @var int */
+    public $twitchGameId;
+
+    /** @var string */
     public $thumbnail;
 
     /** @var bool */
@@ -31,5 +37,9 @@ class StreamInfo
         $this->thumbnail = $thumbnail;
         $this->title = $title;
         $this->viewers = $viewers;
+        $this->game = null;
+        $this->twitchGameId = null;
     }
+
+
 }
