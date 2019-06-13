@@ -9,8 +9,12 @@
         "guzzlehttp/guzzle": "^6.3",
         "ext-json": "*",
         "opis/json-schema": "^1.0",
-        "php": "^7.1",
-        "ext-pdo": "*"
+        "php": "^7.2",
+        "ext-pdo": "*",
+        "php-di/php-di": "^6.0",
+        "monolog/monolog": "^1.24",
+        "league/plates": "v4.0.0-alpha",
+        "ext-gd": "*"
     },
     "authors": [
         {

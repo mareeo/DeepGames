@@ -1,0 +1,748 @@
+/* @font-face */
+
+@font-face {
+    font-family: 'Karnivore';
+    src: url('../imgdump/css/font/KARNIVOR-webfont.eot');
+    src: url('../imgdump/css/font/KARNIVOR-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../imgdump/css/font/KARNIVOR-webfont.woff') format('woff'),
+         url('../imgdump/css/font/KARNIVOR-webfont.ttf') format('truetype'),
+         url('../imgdump/css/font/KARNIVOR-webfont.svg#KarnivoreRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'Karnivore';
+    src: url('../imgdump/css/font/KARNIVOB-webfont.eot');
+    src: url('../imgdump/css/font/KARNIVOB-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../imgdump/css/font/KARNIVOB-webfont.woff') format('woff'),
+         url('../imgdump/css/font/KARNIVOB-webfont.ttf') format('truetype'),
+         url('../imgdump/css/font/KARNIVOB-webfont.svg#KarnivoreBold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'OpenSans';
+    src: url('../imgdump/css/font/OpenSans-Regular-webfont.eot');
+    src: url('../imgdump/css/font/OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../imgdump/css/font/OpenSans-Regular-webfont.woff') format('woff'),
+         url('../imgdump/css/font/OpenSans-Regular-webfont.ttf') format('truetype'),
+         url('../imgdump/css/font/OpenSans-Regular-webfont.svg#OpenSansRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+#container {
+	background: black;
+	background: rgba(0,0,0,0.9);
+	padding:0px 0px;
+	margin:0px auto;
+	   
+}
+
+#player {
+
+
+	float: left;
+	   
+}
+
+#chat {
+
+	   float: left;
+	   position: relative;
+	   
+}
+
+#chatoverlap {
+
+	background-color: rgba(0,0,0,0);
+	background-image: url("../images/socialcat.png");
+	border-radius: 5px;
+	height: 26px;
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	width: 119px;
+	z-index: 2;
+	   
+}
+
+#controls {
+	clear: both;
+	height:25px;
+}
+
+#playback-controls {
+	float: left;
+}
+
+#channel-controls {
+	float: right;
+}
+
+#now-playing {
+	font-size:12px;
+	font-weight:bold;
+	float: left;
+	overflow: hidden;
+	max-height: 25px;
+	text-align: center;
+	color: #FFFFFF;
+	text-shadow: 1px 1px 1px #000B4A;
+}
+
+
+
+body {
+	font-family:  "OpenSans";
+	font-size: 12px;
+    background: #000000;
+	color: #ffffff;
+	margin: 0px;
+	padding: 0px;
+	background: #000 url(../images/springbg.jpg);
+}
+
+body.home {
+	height:100%;
+	overflow: hidden;
+	/*background: #000 url(../images/bg.png) repeat;*/
+	
+}
+
+
+
+
+
+#header a:visited,
+#header a:link {
+	color: #ebebeb;
+	text-decoration: none;
+}
+
+#header a:hover,
+#header a:active {
+	color: #00d9d9;
+}
+
+.content a:link{
+	color: #00d9d9;
+	text-decoration: none;
+}
+
+.content a:visited{
+	color: #00d9d9;
+	text-decoration: none;
+}
+
+.content a:hover{
+	text-decoration: underline;
+}
+
+.content a:active{
+	text-decoration: underline;
+}
+
+
+
+/* Styling for the header ----------------------------------------------------*/
+
+#header {
+	width: 100%;
+	background: rgba(0,0,0,0.4);
+ }
+ 
+#header-content {
+	width: 960px;
+	margin: 0px auto;
+	overflow: hidden;
+	padding-bottom: 4px;
+}
+
+img.icon {
+	float:left;
+	padding: 5px 0px
+	border:none;
+	
+}
+
+#header-logo {
+	float:left;
+	margin-top: 5px;
+}
+
+#header-menu {
+	margin-left:20px;
+	float: left;
+}
+
+
+span.menu-titles {
+	color: #00d9d9;
+	font-family: 'Karnivore';
+	text-shadow: 3px 3px 0px #000000;
+	font-size: 17px;
+	font-weight: normal;
+	text-transform: lowercase;
+}
+
+ul.menu {
+	list-style: none;
+	font-size: 13px;
+	text-shadow: 2px 2px 0px #000000;
+	float: left;
+	/*font-weight: bold;*/
+	width: 160px;
+	margin: 5px 0px;
+	padding-left: 10px;
+	font-family: "Karnivore";
+	text-transform: lowercase;
+	
+	
+}
+
+ul.menu a{
+	text-transform: lowercase;
+}
+
+#steam, #twitter, #youtube {
+	height: 16px;
+	width: 16px;
+	float: left;
+	margin-right: 10px;
+}
+
+#steam:hover, #twitter:hover, #youtube:hover {
+	background-position: bottom;
+}
+
+#steam {
+	background: url("../images/steam.png") 0 0 no-repeat;
+}
+
+#youtube {
+	background: url("../images/youtube.png") 0 0 no-repeat;
+}
+
+#twitter {
+	background: url("../images/twitter.png") 0 0 no-repeat;
+}
+
+#footer {
+	width:100%;
+	position: relative;
+	height: 135px;
+	/*background: rgba(0,0,0,0.4);*/
+	background: rgba(0,0,0,0.6)
+	   
+}
+
+#channelList {
+	overflow: hidden;
+	clear: both;
+	height: 100px;
+	padding: 5px 0px;
+}
+
+#addBox {
+	position: absolute;
+	bottom: 25px;
+	right: 30px;
+	padding: 7px;
+	text-align: center;
+	background-color: rgba(0, 0, 0, 0.804);
+	border-radius: 5px;
+	box-shadow: 2px 2px 6px #000000, inset 0px 0px 3px rgba(255, 255, 255, 0.506);
+	display: none;
+	z-index: 2;
+}
+
+
+
+#removeBox {
+	position: absolute;
+	bottom: 25px;
+	right: 30px;
+	padding: 7px;
+	text-align: center;
+	background-color: rgba(0, 0, 0, 0.804);
+	border-radius: 5px;
+	box-shadow: 2px 2px 6px #000000, inset 0px 0px 3px rgba(255, 255, 255, 0.506);
+	display: none;
+	z-index: 2;
+}
+
+#eventBox {
+	position: absolute;
+	bottom: 25px;
+	right: 25px;
+	padding: 7px;
+	text-align: center;
+	background-color: rgba(160, 0, 0, 0.804);
+	border-radius: 5px;
+	box-shadow: 2px 2px 6px #000000, inset 0px 0px 3px rgba(255, 255, 255, 0.506);
+	display: none;
+	z-index: 2;
+	font-weight: bold;
+	max-width: 500px;
+}
+
+#eventBar {
+
+	clear: both;
+	background-image: linear-gradient(bottom, rgb(89,13,13) 0%, rgb(176,19,19) 65%, rgb(173,83,83) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(89,13,13) 0%, rgb(176,19,19) 65%, rgb(173,83,83) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(89,13,13) 0%, rgb(176,19,19) 65%, rgb(173,83,83) 100%);
+	background-image: -webkit-linear-gradient(bottom, rgb(89,13,13) 0%, rgb(176,19,19) 65%, rgb(173,83,83) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(89,13,13) 0%, rgb(176,19,19) 65%, rgb(173,83,83) 100%);
+	padding: 2px 30px;
+	display: none;
+	position: relative;
+
+}
+
+#eventHide {
+	position: absolute;
+	top: 0px;
+	right: 5px;
+	font-weight:bold;
+}
+
+.channelSelector {
+	cursor: pointer;
+	float: left;
+	min-width: 90px;
+	max-width: 200px;
+	height: 100px;
+	position: relative;
+	margin: 0px 3px;
+}
+
+.channelSelector:hover {
+	opacity: 0.8;
+	
+}
+
+.selectorViewers {
+	float: right;
+}
+
+.selectorChannelName {
+	float: left;
+}
+
+
+.selectorFooter {
+	background-color: rgba(0,0,0,0.6);
+	font-size: 12px;
+	overflow: hidden;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 0px;
+	padding: 2px;
+	width: 98%;
+}
+
+.selectorFooterLive {
+	background-color: rgba(0,217,217,0.6);
+}
+
+.selectorLive{
+	background-color: rgba(200,0,0,0.8);
+}
+
+.selectorLive:hover{
+	background-color: rgba(150,0,0,0.8);
+}
+
+.selectorImage {
+	height: 90px;
+}
+
+
+#eventMessage {
+	font-size:24px;
+	text-align: center;
+}
+
+
+
+/*
+button.darkButton {
+	background-attachment: scroll;
+	background-repeat: repeat;
+	background-image: none;
+	background-position: 0% 0%;
+	background-size: auto;
+	background-origin: padding-box;
+	background-clip: border-box;
+	background-color: rgb(227, 227, 227);
+	border-top-color: rgb(187, 187, 187);
+	border-left-color: rgb(187, 187, 187);
+	border-right-color: rgb(187, 187, 187);
+	border-bottom-color: rgb(187, 187, 187);
+	border-top-width: 1px;
+	border-left-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-top-style: solid;
+	border-left-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+	box-shadow: inset 0px 0px 1px 1px rgb(246, 246, 246);
+	color: rgb(51, 51, 51);
+	font-family: "helvetica neue", "helvetica", "arial", sans-serif;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1;
+	padding-top: 3px;
+	padding-right: 0px;
+	padding-bottom: 4px;
+	padding-left: 0px;
+	text-align: center;
+	text-shadow: 0px 1px 0px rgb(255, 255, 255);
+	width: 100px
+}
+
+button.darkButton:hover {
+	background-attachment: scroll;
+	background-repeat: repeat;
+	background-image: none;
+	background-position: 0% 0%;
+	background-size: auto;
+	background-origin: padding-box;
+	background-clip: border-box;
+	background-color: rgb(217, 217, 217);
+	box-shadow: inset 0px 0px 1px 1px rgb(234, 234, 234);
+	color: rgb(34, 34, 34);
+	cursor: pointer
+}
+
+button.darkButton:active {
+	background-attachment: scroll;
+	background-repeat: repeat;
+	background-image: none;
+	background-position: 0% 0%;
+	background-size: auto;
+	background-origin: padding-box;
+	background-clip: border-box;
+	background-color: rgb(208, 208, 208);
+	box-shadow: inset 0px 0px 1px 1px rgb(227, 227, 227);
+	color: rgb(0, 0, 0)
+}
+
+*/
+
+
+.darkButton {
+	/*background: #545454;*/
+	background: #000B4A;
+	/*
+	background-image: linear-gradient(bottom,rgb(35,44,49)  0%, rgb(61,72,80) 100%);
+	background-image: -o-linear-gradient(bottom,rgb(35,44,49)  0%, rgb(61,72,80) 100%);
+	background-image: -moz-linear-gradient(bottom,rgb(35,44,49)  0%, rgb(61,72,80) 100%);
+	background-image: -webkit-linear-gradient(bottom,rgb(35,44,49)  0%, rgb(61,72,80) 100%);
+*/
+	border-radius: 3px;
+	border: none;
+	color:#ffffff;
+	font-family: OpenSans;
+	font-size: 11px;
+	padding: 3px 4px;
+	text-align: center;
+	min-width: 75px;
+	margin: 1px;
+	text-transform: none;
+}
+
+.content .darkButton:link {
+	color: #ffffff;
+}
+
+.darkButton:hover {
+	/*
+	background-image: linear-gradient(bottom,rgb(44,55,61)  0%, rgb(70,83,91) 100%);
+	background-image: -o-linear-gradient(bottom,rgb(44,55,61)  0%, rgb(70,83,91) 100%);
+	background-image: -moz-linear-gradient(bottom,rgb(44,55,61)  0%, rgb(70,83,91) 100%);
+	background-image: -webkit-linear-gradient(bottom,rgb(44,55,61)  0%, rgb(70,83,91) 100%);
+	*/
+	background-color: #383838;
+	cursor: pointer;
+}
+
+.darkButton:active {
+	/*
+	background-image: linear-gradient(bottom,rgb(27,34,38)  0%, rgb(51,59,66) 100%);
+	background-image: -o-linear-gradient(bottom,rgb(27,34,38)  0%, rgb(51,59,66) 100%);
+	background-image: -moz-linear-gradient(bottom,rgb(27,34,38)  0%, rgb(51,59,66) 100%);
+	background-image: -webkit-linear-gradient(bottom,rgb(27,34,38)  0%, rgb(51,59,66) 100%);
+	*/
+	box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, .5);
+	background-color: #383838;
+}
+
+#volume-down, #volume-up {
+	width: 44px;
+	min-width: 44px;
+}
+
+img {
+	border: none;
+}
+
+.content {
+	width: 960px;
+	color: #FFFFFF;
+	margin: 10px auto;
+	overflow: auto;
+	font-family: OpenSans;
+	font-size: 14px;
+	background-color: #141414;
+	padding: 10px;
+}
+
+#header input {
+	background: #545454;
+	border: medium none currentColor;
+	border-radius: 4px;
+	color: white;
+	font-family: "OpenSans";
+	font-size: 12px;
+	font-weight: 700;
+	margin: 1px 0px;
+	padding: 0px;
+	width: 75px;
+	display: none;
+	
+}
+
+#login, #create, #logout {
+	min-width: 50px;
+	padding: 1px 4px;
+	display: none;
+}
+
+#loginForm:hover button {
+	display: inline-block;
+}
+
+#loginForm:hover input {
+	display: block;
+	
+}
+
+#loginForm {
+	min-height: 75px;
+}
+
+
+/*************IMGDUMP********************/
+
+#pictures {
+	padding: 0px;
+	clear: both;
+}
+	
+#pictures li {
+	float:left;
+	list-style:none;
+	width: 176px;
+	height: 225px;
+	padding:5px;
+	/*border: 1px dotted #bbbbbb;*/
+	overflow: hidden;
+	position:relative;
+	line-height: 15px;
+	text-align: center;
+	margin: 3px;
+}
+
+#pictures li:hover > .darkButton{
+	display: block;
+}
+
+#pictures li:hover {
+	background: #2E2E2E;
+}
+
+#pictures li a {
+
+}
+
+span.comment {
+	
+	word-wrap: break-word;
+}
+
+span.uploader {
+	font-size:10px;
+	font-weight: bold;
+}
+
+#page-select {
+	width: 460px;
+	margin: 5px auto;
+}
+
+div.imgdump-image {
+	height: 100px;
+	margin-bottom: 2px;
+	display:block;
+}
+
+.fav {
+	background: #7F0000;
+}
+
+.lightButton {
+	background: #F2F2F2;
+	border: 1px solid #BCBCBC;
+	border-radius: 3px;
+	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.196);
+	color: #0D0D0D;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1;
+	margin: 1px;
+	min-width: 75px;
+	padding: 2px 2px 3px;
+	text-align: center;
+	text-decoration: none;
+}
+
+.lightButton:hover {
+	background: #E6E6E6;
+	cursor: pointer;
+	text-decoration: none;
+	
+}
+
+a {
+	color: #FFFFFF;
+}
+
+a:visited {
+	color: #FFFFFF;
+}
+
+.lightButton a:link {
+	color: #0D0D0D;
+	text-decoration: none;
+}
+
+.lightButton:active {
+	box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, .5);
+}
+
+.remove {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	display: none;
+}
+
+.favorite {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	display: none;
+}
+
+.imgdump-img {
+	border: 2px solid white;
+	-webkit-box-shadow:  0px 0px 5px 0px rgba(0, 0, 0, .8);
+     box-shadow:  0px 0px 5px 0px rgba(0, 0, 0, .8);
+	margin: 0px auto;
+}
+
+.imgoverlay {
+	width: 100%;
+	z-index: 2;
+	background: blue;
+}
+
+.upload {
+	background-color: #DFDFDF;
+	border: 1px dotted #5F5F5F;
+	clear: both;
+	padding: 5px;
+	text-align: center;
+}
+
+input.lightTextBox {
+	background: #F2F2F2;
+	border: 1px solid #BCBCBC;
+	border-radius: 3px;
+	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.196);
+	color: #0D0D0D;
+	font-family: "helvetica neue", "helvetica", "arial", sans-serif;
+	padding: 2px 2px 3px;
+}
+
+.selectorRemove {
+	background: rgba(0,0,0,0.0) url("../images/remove.png") 0px 0px;
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	display: none;
+	height: 15px;
+	width: 15px;
+
+}
+
+.selectorRemove:hover {
+	background: rgba(0,0,0,0.6) url("../images/remove.png") 0px 15px;
+}
+
+.channelSelector:hover > .selectorRemove {
+	display: block;	
+}
+
+div.title {
+	background: #00d9d9;
+	font-family: Karnivore;
+	color: #000000;
+	font-size: 30px;
+	font-weight: bold;
+	text-transform: uppercase;
+	width: auto;
+	height: 40px;
+	margin: 5px 0px;
+	display: inline-block;
+	padding: 0px 5px;
+}
+
+div.sub-title {
+	background: #00d9d9;
+	font-family: Karnivore;
+	color: #000000;
+	font-size: 20px;
+	font-weight: bold;
+	text-transform: uppercase;
+	width: auto;
+	height: 29px;
+	margin: 5px 0px;
+	display: inline-block;
+	padding: 0px 5px;
+
+}
+
+.content p {
+	margin-left: 1em;
+}
+
+.content .footer {
+	background: #2E2E2E;
+	padding: 25px;
+	margin-top: 10px;
+}

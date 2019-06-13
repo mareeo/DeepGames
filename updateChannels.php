@@ -31,7 +31,7 @@ function updateTwitchChannels(PDO $dbh): void
     $twitchUsernames = array_keys($twitchChannels);
 
     // Get current stream info from Twitch API
-    $twitch = new TwitchIntegration('');
+    $twitch = new TwitchIntegration('ere8uvpivoc6kmq7nsa7j0ivw9vrse');
     $streamInfoMap = $twitch->getStreamInfo($twitchUsernames);
 
     // Update database with updated info
