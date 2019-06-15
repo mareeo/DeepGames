@@ -52,6 +52,11 @@ JSON;
         $this->validator = new Validator();
     }
 
+    /**
+     * @param string $username
+     * @return StreamInfo
+     * @throws \Exception
+     */
     public function getStreamInfo(string $username): StreamInfo
     {
         $response = $this->guzzle->get($username);
@@ -69,7 +74,7 @@ JSON;
             $error = $result->getFirstError();
             $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
             $message .= json_encode($error->keywordArgs());
-            throw new \Exception("Invalid Twitch API response: $message");
+            throw new \Exception("Invalid AngelThump API response: $message");
         }
 
         return $this->makeStreamInfo($body);

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use DeepGamers\Integrations\AngelThumpIntegration;
 use DeepGamers\Integrations\TwitchIntegration;
 use DI\Container;
 use League\Plates\Engine;
@@ -69,5 +70,9 @@ return function (ContainerInterface $container) {
         }
 
         return $twitch;
+    });
+
+    $container->set(AngelThumpIntegration::class, function(Container $c) {
+        return new AngelThumpIntegration();
     });
 };

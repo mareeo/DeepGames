@@ -1,5 +1,6 @@
 <?php
 
+use DeepGamers\Integrations\AngelThumpIntegration;
 use DeepGamers\Integrations\StreamInfo;
 use DeepGamers\Integrations\TwitchIntegration;
 
@@ -18,7 +19,7 @@ $dependencies($container);
 try {
     /** @var PDO $dbh */
     $dbh = $container->get('dbh');
-    $twitch = $container->get(\DeepGamers\Integrations\TwitchIntegration::class);
+    $twitch = $container->get(TwitchIntegration::class);
     updateTwitchChannels($dbh, $twitch);
 } catch (Throwable $e) {
     echo "Error updating twitch channels: " . $e->getMessage();
@@ -26,6 +27,31 @@ try {
 } catch (\GuzzleHttp\Exception\GuzzleException $e) {
     echo "wtf\n";
 }
+
+
+$angelThump = $container->get(AngelThumpIntegration::class);
+updateAngelThumpChannels($dbh, $angelThump);
+
+function updateAngelThumpChannels(PDO $dbh, AngelThumpIntegration $angelThump)
+{
+    echo "Updating Angel Thump Channels...\n";
+
+    $channels = getAngelThumpChannels($dbh);
+
+    foreach ($channels as $username => $id) {
+        echo "Updating $username";
+
+        try {
+            $streamInfo = $angelThump->getStreamInfo($username);
+            updateDbRow($dbh, $id, $streamInfo);
+        } catch (\Throwable $e) {
+            echo "Error updating AngelThump channel $username: " . $e->getMessage();
+            error_log($e->getMessage());
+        }
+    }
+
+}
+
 
 /**
  * Get all twitch channels from the database, use the Twitch API to get updated info, the update the database.
@@ -95,6 +121,24 @@ function getTwitchChannels(PDO $dbh): array
 SELECT name, stream_id 
 FROM stream 
 WHERE service = 'twitch'
+SQL
+    );
+
+    $query->execute();
+    return $query->fetchAll(PDO::FETCH_KEY_PAIR);
+}
+
+/**
+ * Get all twitch channels from the database
+ * @param PDO $dbh
+ * @return array A map where key is username and value is database ID.
+ */
+function getAngelThumpChannels(PDO $dbh): array
+{
+    $query = $dbh->prepare(<<<SQL
+SELECT name, stream_id 
+FROM stream 
+WHERE service = 'angelthump'
 SQL
     );
 

@@ -11,7 +11,8 @@ var isFirstLoad = true;
 var initialTimeout;
 
 var channelData = {
-   twitch: {}
+   twitch: {},
+   angelthump: {}
 };
 
 var Config = {
@@ -211,7 +212,8 @@ function processData(data) {
    var newlyLive = [];
 
    channelData = {
-      twitch: {}
+      twitch: {},
+      angelthump: {}
    };
 
    // For every live channel
@@ -354,9 +356,14 @@ function changeChannel(channelData) {
    $(".current").removeClass('current');
    $("#"+divName).addClass('current');
 
+   var playerCode, chatCode;
+
    if (currentChannel.service === 'twitch') {
-      var playerCode = `<iframe src="https://player.twitch.tv/?channel=${currentChannel.name}" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
-      var chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+      playerCode = `<iframe src="https://player.twitch.tv/?channel=${currentChannel.name}" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
+      chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+   } else if (currentChannel.service === 'angelthump') {
+      playerCode = `<iframe src="https://angelthump.com/${currentChannel.name}/embed" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
+      chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
    }
 
    // Update the player and chat code
@@ -365,8 +372,6 @@ function changeChannel(channelData) {
 
    return true;
 }
-
-
 
 /*
  * Called on page resize to fit the player
