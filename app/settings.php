@@ -1,14 +1,10 @@
 <?php
 declare(strict_types=1);
 
-use DI\Container;
 use Monolog\Logger;
-use Slim\App;
+use Psr\Container\ContainerInterface;
 
-return function (App $app) {
-    /** @var Container $container */
-    $container = $app->getContainer();
-
+return function (ContainerInterface $container) {
     // Global Settings Object
     $container->set('settings', [
         'displayErrorDetails' => true, // Should be set to false in production
@@ -29,6 +25,12 @@ return function (App $app) {
             'user' => 'root',
             'pass' => '',
             'dbname' => 'deepgamers'
+        ],
+
+        'twitch' => [
+            'clientID' => '',
+            'clientSecret' => '',
+            'accessTokenCacheKey' => 'twitch.accessToken'
         ]
     ]);
 };

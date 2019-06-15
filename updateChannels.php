@@ -5,24 +5,35 @@ use DeepGamers\Integrations\TwitchIntegration;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$dbh = new PDO('mysql:host=localhost;dbname=deepgamers', 'root', '', [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-]);
+$container = new \DI\Container();
+
+// Set up settings
+$settings = require __DIR__ . '/app/settings.php';
+$settings($container);
+
+// Set up dependencies
+$dependencies = require __DIR__ . '/app/dependencies.php';
+$dependencies($container);
 
 try {
-    updateTwitchChannels($dbh);
+    /** @var PDO $dbh */
+    $dbh = $container->get('dbh');
+    $twitch = $container->get(\DeepGamers\Integrations\TwitchIntegration::class);
+    updateTwitchChannels($dbh, $twitch);
 } catch (Throwable $e) {
-    echo "Error updating twitch channnels: " . $e->getMessage();
+    echo "Error updating twitch channels: " . $e->getMessage();
     error_log($e->getMessage());
+} catch (\GuzzleHttp\Exception\GuzzleException $e) {
+    echo "wtf\n";
 }
-
 
 /**
  * Get all twitch channels from the database, use the Twitch API to get updated info, the update the database.
  * @param PDO $dbh
- * @throws Exception
+ * @param TwitchIntegration $twitch
+ * @throws \GuzzleHttp\Exception\GuzzleException
  */
-function updateTwitchChannels(PDO $dbh): void
+function updateTwitchChannels(PDO $dbh, TwitchIntegration $twitch): void
 {
     echo "Updating twitch channels...\n";
 
@@ -31,7 +42,6 @@ function updateTwitchChannels(PDO $dbh): void
     $twitchUsernames = array_keys($twitchChannels);
 
     // Get current stream info from Twitch API
-    $twitch = new TwitchIntegration('ere8uvpivoc6kmq7nsa7j0ivw9vrse');
     $streamInfoMap = $twitch->getStreamInfo($twitchUsernames);
 
     // Update database with updated info

@@ -14,6 +14,30 @@ use Opis\JsonSchema\Validator;
  */
 class TwitchIntegration
 {
+    private const OAUTH_TOKEN_SCHEMA = <<<'JSON'
+{
+    "type": "object",
+    "properties": {
+        "access_token": {
+            "type": "string"
+        },
+        "refresh_token": {
+            "type": "string"
+        },
+        "expires_in": {
+            "type": "integer"
+        },
+        "scope": {
+            "type": "array"
+        },
+        "token_type": {
+            "type": "string"
+        }
+    },
+    "required": ["access_token", "expires_in", "token_type"]
+}
+JSON;
+
     private const STREAM_SCHEMA = <<<'JSON'
 {
     "type": "object",
@@ -155,8 +179,20 @@ JSON;
     /** @var Validator */
     private $validator;
 
-    public function __construct(string $clientID)
+    /** @var string */
+    private $clientID;
+
+    /** @var string */
+    private $clientSecret;
+
+    /** @var string */
+    private $accessToken;
+
+    public function __construct(string $clientID, string $clientSecret)
     {
+        $this->clientID = $clientID;
+        $this->clientSecret = $clientSecret;
+
         $this->guzzle = new Client([
             'base_uri' => 'https://api.twitch.tv/helix/',
             'headers' => [
@@ -167,6 +203,50 @@ JSON;
         $this->validator = new Validator();
     }
 
+    public function setAccessToken(string $accessToken){
+        $this->accessToken = $accessToken;
+        $this->guzzle = new Client([
+            'base_uri' => 'https://api.twitch.tv/helix/',
+            'headers' => [
+                'Authorization' => "Bearer {$this->accessToken}"
+            ]
+        ]);
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getOAuthAccessToken()
+    {
+        $response = $this->guzzle->post('https://id.twitch.tv/oauth2/token', [
+                'query' => [
+                    'client_id' => $this->clientID,
+                    'client_secret' => $this->clientSecret,
+                    'grant_type' => 'client_credentials'
+                ]
+            ]
+        );
+
+        if ($response->getStatusCode() !== 200) {
+            throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
+        }
+
+        $body = json_decode($response->getBody()->getContents());
+        $result = $this->validator->schemaValidation($body, Schema::fromJsonString(self::OAUTH_TOKEN_SCHEMA));
+
+        if (!$result->isValid()) {
+            $error = $result->getFirstError();
+            $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
+            $message .= json_encode($error->keywordArgs());
+            throw new \Exception("Invalid Twitch API response: $message");
+        }
+
+        $this->setAccessToken($body->access_token);
+
+        return $body;
+    }
+
     /**
      * Get channel information for Twitch channels.
      * First, all live streams are fetched. Then for offline streams the channel information (technically user
@@ -174,6 +254,7 @@ JSON;
      * @param array $channels
      * @return StreamInfo[]
      * @throws \Exception
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getStreamInfo(array $channels)
     {
@@ -196,6 +277,7 @@ JSON;
      * @param array $channels
      * @return StreamInfo[] A map where keys are usernames and values are StreamInfo objects.
      * @throws \Exception
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function getLiveStreams(array $channels): array
     {
@@ -204,14 +286,15 @@ JSON;
         }
 
         // Do the API request
-        $response = $this->guzzle->get('streams', [
+        $response = $this->guzzle->request('GET', 'streams', [
             'query' => ['user_login' => $channels ]
         ]);
+
+        var_dump($response->getHeaderLine('Ratelimit-Remaining'));
 
         if ($response->getStatusCode() !== 200) {
             throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
         }
-
 
         $body = json_decode($response->getBody()->getContents());
         $result = $this->validator->schemaValidation($body, Schema::fromJsonString(self::STREAM_SCHEMA));

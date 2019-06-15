@@ -14,11 +14,11 @@ $app = AppFactory::create(
 
 // Set up settings
 $settings = require __DIR__ . '/../app/settings.php';
-$settings($app);
+$settings($app->getContainer());
 
 // Set up dependencies
 $dependencies = require __DIR__ . '/../app/dependencies.php';
-$dependencies($app);
+$dependencies($app->getContainer());
 
 // Register middleware
 $middleware = require __DIR__ . '/../app/middleware.php';

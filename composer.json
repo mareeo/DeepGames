@@ -14,7 +14,9 @@
         "php-di/php-di": "^6.0",
         "monolog/monolog": "^1.24",
         "league/plates": "v4.0.0-alpha",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "symfony/cache": "^4.3",
+        "psr/simple-cache": "^1.0"
     },
     "authors": [
         {

@@ -11,9 +11,7 @@ var isFirstLoad = true;
 var initialTimeout;
 
 var channelData = {
-   livestream: {},
-   twitch: {},
-   hitbox: {}
+   twitch: {}
 };
 
 var Config = {
@@ -83,7 +81,7 @@ $(function () {
       toggleChat();
    });
 
-   var configTemplate = Handlebars.compile($("#config-dialog").html());
+   var configTemplate = Handlebars.templates.configDialog;
 
    $("#settingsButton").click(function(event) {
 
@@ -171,8 +169,7 @@ function getTeam() {
 
       beforeSend: function() {
          if(isFirstLoad) {
-            var loadingTemplate = Handlebars.compile($("#loading-template").html());
-
+            var loadingTemplate = Handlebars.templates.loading;
             var html = loadingTemplate();
             $("#player").html(html);
             $("#liveSelectors").html(html);
@@ -188,11 +185,8 @@ function getTeam() {
             isFirstLoad = false;
             pickFirstChannel();
          } else {
-            console.log(newlyLiveChannels);
             if(newlyLiveChannels.length > 0) {
                if(Config.liveChannelNotification) {
-                  var message = makeNotificationMessage(newlyLiveChannels);
-                  notify(message);
                }
 
                if(Config.liveChannelTone) {
@@ -217,9 +211,7 @@ function processData(data) {
    var newlyLive = [];
 
    channelData = {
-      livestream: {},
-      twitch: {},
-      hitbox: {}
+      twitch: {}
    };
 
    // For every live channel
@@ -227,12 +219,12 @@ function processData(data) {
 
       // If we didn't have data for this channel before, it's newly live
       if(!(channel.name in oldData[channel.service])) {
-         console.log("Data doesn't exists for " + channel.service + channel.name);
+         console.error("Data doesn't exists for " + channel.service + channel.name);
          newlyLive.push(channel.name);
 
       // If we did have data for this channel before and it wasn't live, it's newly live
-      } else if (!oldData[channel.service][channel.name].live) {
-         console.log("Data existed but wasn't live for" + channel.service + channel.name);
+      } else if (!oldData[channel.service][channel.name].live === '1') {
+         console.error("Data existed but wasn't live for" + channel.service + channel.name);
          newlyLive.push(channel.name);
       }
 
@@ -283,8 +275,8 @@ function showTeam() {
    var offDiv = $("#offlineSelectors");
 
    // Compile templates
-   var liveTemplate = Handlebars.compile($("#selector-template").html());
-   var offlineTemplate = Handlebars.compile($("#offlineSelector-template").html());
+   var liveTemplate = Handlebars.templates.selector;
+   var offlineTemplate = Handlebars.templates.offlineSelector;
 
    // Empty existing divs
    liveDiv.empty();
@@ -299,7 +291,7 @@ function showTeam() {
          var targetDiv;
 
          // Render the appropriate template based upon live status
-         if(channel.live) {
+         if(channel.live === '1') {
             html = liveTemplate(channel);
             targetDiv = liveDiv;
          } else {
@@ -354,11 +346,6 @@ function showTeam() {
  */
 function changeChannel(channelData) {
 
-   // Do nothing if changing to the current channel
-   //if(currentChannel == channelData) {
-   //   return false;
-   //}
-
    // Update currentChannel
    currentChannel = channelData;
 
@@ -367,9 +354,14 @@ function changeChannel(channelData) {
    $(".current").removeClass('current');
    $("#"+divName).addClass('current');
 
+   if (currentChannel.service === 'twitch') {
+      var playerCode = `<iframe src="https://player.twitch.tv/?channel=${currentChannel.name}" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
+      var chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+   }
+
    // Update the player and chat code
-   $("#player").html(currentChannel.player_code);
-   $("#chat").html(currentChannel.chat_code);
+   $("#player").html(playerCode);
+   $("#chat").html(chatCode);
 
    return true;
 }
@@ -431,44 +423,12 @@ function pickFirstChannel() {
 
    var liveChannels = getLiveChannels();
 
-   console.log(liveChannels);
-
    if(liveChannels.length > 0) {
       changeChannel(liveChannels[0]);
    } else {
-      changeChannel(channelData['livestream']['deepgamers']);
+      $("#player").html("No channels live")
    }
 
-}
-
-/*
- *If multiple channels are live, this determines which one to load
- */
-function determineFirstChannel() {
-
-   var channel;
-   var maxViewers = -1;
-
-   if (channelData['livestream']['deepgamers'].live) {
-      maxViewers = channelData['livestream']['deepgamers'].viewers;
-      channel = 'livestream-deepgamers';
-   }
-
-   if (channelData['hitbox']['deepgames'].live) {
-      if (channelData['hitbox']['deepgames'].viewers > maxViewers) {
-         maxViewers = channelData['hitbox']['deepgames'].viewers;
-         channel = 'hitbox-deepgames';
-      }
-   }
-
-   if (channelData['twitch']['deepgamers'].live) {
-      if (channelData['twitch']['deepgamers'].viewers > maxViewers) {
-         maxViewers = channelData['twitch']['deepgamers'].viewers;
-         channel = 'twitch-deepgamers';
-      }
-   }
-
-   return channel;
 }
 
 function toggleChat() {
@@ -495,7 +455,7 @@ function getLiveChannels() {
 
    $.each(channelData, function(service, data) {
       $.each(data, function(index, channelData) {
-         if(channelData.live) {
+         if(channelData.live === '1') {
             liveChannels.push(channelData);
          }
       });
@@ -507,40 +467,6 @@ function getLiveChannels() {
 
    return liveChannels;
 
-}
-
-
-function makeNotificationMessage(channels) {
-   if(channels.length == 1) {
-      return channels[0] + " just went live!";
-   }
-
-   if(channels.length == 2) {
-      return channels[0] + " and " + channels[1] + " just went live!";
-   }
-
-   var message = '';
-   for(i=0; i<channels.length-1; i++) {
-      message += channels[i] + ", ";
-   }
-
-   message += "and " + channels[channels.length-1] + " just went live!";
-
-   return message;
-}
-
-function notify(text) {
-   //$.notify(text, {
-   //   globalPosition: 'top center',
-   //   autoHide: false,
-   //   className: "deepNotification"
-   //});
-
-   humane.log(text, {
-      timeout: 7500,
-      clickToClose: true,
-      addnCls: 'deepNotification'
-   });
 }
 
 function popoutChat() {
@@ -590,4 +516,3 @@ function popoutPlayer() {
       );
    }
 }
-

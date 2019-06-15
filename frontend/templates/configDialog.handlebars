@@ -1,0 +1,8 @@
+<div id="configDialog">
+    <input type="checkbox" id="autoSwitchCheck" {{#autoSwitch}}checked{{/autoSwitch}}/><label for="autoSwitchCheck"> Enable auto switch</label><br>
+    <input type="checkbox" id="liveChannelNoteCheck" {{#liveChannelNotification}}checked{{/liveChannelNotification}}/><label for="liveChannelNoteCheck"> Enable visual notification for new live channels</label><br>
+    <input type="checkbox" id="liveToneCheck" {{#liveChannelTone}}checked{{/liveChannelTone}}/><label for="liveToneCheck"> Enable live channel sound</label><br>
+    Live channel sound volume<br>
+    <i class="fa fa-volume-off"></i> <input id="toneVolume" type="range" min="0" max="1" step="0.05" value="{{toneVolume}}"style="height:11px; margin: 1px;"/> <i class="fa fa-volume-up"></i><br>
+    <button class="flat-button" id="saveButton" style="width: 100%">Save</button>
+</div>
