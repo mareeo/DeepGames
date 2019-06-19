@@ -11,8 +11,8 @@ var isFirstLoad = true;
 var initialTimeout;
 
 var channelData = {
-   twitch: {},
-   angelthump: {}
+   angelthump: {},
+   twitch: {}
 };
 
 var Config = {
@@ -212,8 +212,8 @@ function processData(data) {
    var newlyLive = [];
 
    channelData = {
-      twitch: {},
-      angelthump: {}
+      angelthump: {},
+      twitch: {}
    };
 
    // For every live channel
@@ -360,10 +360,15 @@ function changeChannel(channelData) {
 
    if (currentChannel.service === 'twitch') {
       playerCode = `<iframe src="https://player.twitch.tv/?channel=${currentChannel.name}" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
-      chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+      chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
    } else if (currentChannel.service === 'angelthump') {
       playerCode = `<iframe src="https://angelthump.com/${currentChannel.name}/embed" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
-      chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+
+      if (currentChannel.name === 'hehe') {
+         chatCode = `<iframe src="https://www.twitch.tv/embed/hehefunnys/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+      } else {
+         chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+      }
    }
 
    // Update the player and chat code
@@ -431,7 +436,8 @@ function pickFirstChannel() {
    if(liveChannels.length > 0) {
       changeChannel(liveChannels[0]);
    } else {
-      $("#player").html("No channels live")
+      // $("#player").html("No channels live");
+      changeChannel(channelData['angelthump']['dman99']);
    }
 
 }

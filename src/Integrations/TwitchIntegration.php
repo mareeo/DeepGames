@@ -309,7 +309,7 @@ JSON;
         // Build StreamInfo map
         $infoMap = [];
         foreach ($body->data as $streamObject) {
-            $infoMap[$streamObject->user_name] = $this->makeFromStream($streamObject);
+            $infoMap[strtolower($streamObject->user_name)] = $this->makeFromStream($streamObject);
         }
 
         return $infoMap;
@@ -373,7 +373,7 @@ JSON;
         // Build StreamInfo map
         $infoMap = [];
         foreach ($body->data as $streamObject) {
-            $infoMap[$streamObject->login] = $this->makeFromUser($streamObject);
+            $infoMap[strtolower($streamObject->login)] = $this->makeFromUser($streamObject);
         }
 
         return $infoMap;

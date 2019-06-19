@@ -19,7 +19,7 @@ return function (App $app) {
 
     $app->group('/imgdump', function(\Slim\Routing\RouteCollectorProxy $group) {
         $group->get('/', \DeepGamers\Application\Actions\ImgDumpPageAction::class);
-        $group->get('/submit.php', \DeepGamers\Application\Actions\ImgDumpSubmitAction::class);
+        $group->post('/submit.php', \DeepGamers\Application\Actions\ImgDumpSubmitAction::class);
         $group->get('/remove.php', \DeepGamers\Application\Actions\ImgDumpRemoveAction::class);
     });
 
