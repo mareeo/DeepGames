@@ -3,6 +3,8 @@
 use DeepGamers\Integrations\AngelThumpIntegration;
 use DeepGamers\Integrations\StreamInfo;
 use DeepGamers\Integrations\TwitchIntegration;
+use GuzzleHttp\Exception\GuzzleException;
+use Psr\SimpleCache\InvalidArgumentException;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -21,16 +23,20 @@ try {
     $dbh = $container->get('dbh');
     $twitch = $container->get(TwitchIntegration::class);
     updateTwitchChannels($dbh, $twitch);
-} catch (Throwable $e) {
-    echo "Error updating twitch channels: " . $e->getMessage();
+} catch (\Throwable | GuzzleException | InvalidArgumentException $e ) {
+    echo "Error updating twitch channels: " . get_class($e) . ' - ' . $e->getMessage() . "\n";
     error_log($e->getMessage());
-} catch (\GuzzleHttp\Exception\GuzzleException $e) {
-    echo "wtf\n";
 }
 
 
-$angelThump = $container->get(AngelThumpIntegration::class);
-updateAngelThumpChannels($dbh, $angelThump);
+try {
+    $angelThump = $container->get(AngelThumpIntegration::class);
+    updateAngelThumpChannels($dbh, $angelThump);
+} catch (\Throwable $e) {
+    echo "Error updating AngelThump channels: " . $e->getMessage() . "\n";
+    error_log($e->getMessage());
+}
+
 
 function updateAngelThumpChannels(PDO $dbh, AngelThumpIntegration $angelThump)
 {
@@ -45,7 +51,7 @@ function updateAngelThumpChannels(PDO $dbh, AngelThumpIntegration $angelThump)
             $streamInfo = $angelThump->getStreamInfo($username);
             updateDbRow($dbh, $id, $streamInfo);
         } catch (\Throwable $e) {
-            echo "Error updating AngelThump channel $username: " . $e->getMessage();
+            echo "Error updating AngelThump channel $username: " . $e->getMessage() . "\n";
             error_log($e->getMessage());
         }
     }
@@ -57,7 +63,8 @@ function updateAngelThumpChannels(PDO $dbh, AngelThumpIntegration $angelThump)
  * Get all twitch channels from the database, use the Twitch API to get updated info, the update the database.
  * @param PDO $dbh
  * @param TwitchIntegration $twitch
- * @throws \GuzzleHttp\Exception\GuzzleException
+ * @throws GuzzleException
+ * @throws InvalidArgumentException
  */
 function updateTwitchChannels(PDO $dbh, TwitchIntegration $twitch): void
 {

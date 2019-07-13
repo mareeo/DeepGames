@@ -5,6 +5,8 @@ namespace DeepGamers\Integrations;
 use GuzzleHttp\Client;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\Validator;
+use Psr\Http\Message\ResponseInterface;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Interacts with the "New Twitch API" to get current status of channels.
@@ -90,7 +92,7 @@ JSON;
                         "type": "integer"
                     }
                 },
-                "required": ["community_ids", "game_id", "id", "language", "started_at", "tag_ids", "thumbnail_url", "title", "user_id", "user_name", "viewer_count"]
+                "required": ["game_id", "id", "language", "started_at", "tag_ids", "thumbnail_url", "title", "user_id", "user_name", "viewer_count"]
             }
         }
     },
@@ -176,6 +178,12 @@ JSON;
     /** @var Client */
     private $guzzle;
 
+    /** @var CacheInterface */
+    private $cache;
+
+    /** @var string */
+    private $accessTokenCacheKey;
+
     /** @var Validator */
     private $validator;
 
@@ -188,10 +196,20 @@ JSON;
     /** @var string */
     private $accessToken;
 
-    public function __construct(string $clientID, string $clientSecret)
+    /**
+     * TwitchIntegration constructor.
+     * @param CacheInterface $cache
+     * @param string $clientID
+     * @param string $clientSecret
+     * @param string $accessTokenCacheKey
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function __construct(CacheInterface $cache, string $clientID, string $clientSecret, string $accessTokenCacheKey)
     {
+        $this->cache = $cache;
         $this->clientID = $clientID;
         $this->clientSecret = $clientSecret;
+        $this->accessTokenCacheKey = $accessTokenCacheKey;
 
         $this->guzzle = new Client([
             'base_uri' => 'https://api.twitch.tv/helix/',
@@ -201,9 +219,54 @@ JSON;
         ]);
 
         $this->validator = new Validator();
+
+        $accessToken = $cache->get($this->accessTokenCacheKey);
+
+        if ($accessToken !== null) {
+            $this->setAccessToken($accessToken);
+        } else {
+            $this->updateOAuthAccessToken();
+        }
     }
 
-    public function setAccessToken(string $accessToken){
+    /**
+     * Get channel information for Twitch channels.
+     * First, all live streams are fetched. Then for offline streams the channel information (technically user
+     * information) is fetched. Finally, game information is fetched.
+     * @param array $channels
+     * @return StreamInfo[]
+     * @throws \Exception
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function getStreamInfo(array $channels): array
+    {
+        /** @var StreamInfo[] $allStreams */
+        $allStreams = [];
+
+        // Twitch API calls allow a max of 100 streams per request
+        foreach(array_chunk($channels, 100) as $channelsChunk) {
+
+            // Get information for live and not live channels and merge the results together
+            $liveStreams = $this->getLiveStreams($channels);
+            $offlineUsers = array_values(array_diff($channelsChunk, array_keys($liveStreams)));
+            $offlineStreams = $this->getUsersInfo($offlineUsers);
+
+            /** @var StreamInfo[] $chunkAllStreams */
+            $chunkAllStreams = array_merge($liveStreams, $offlineStreams);
+
+            // Fetch and add game information to the data
+            $this->addGameInformation($chunkAllStreams);
+
+            // All this chunk to the full list
+            $allStreams = array_merge($allStreams, $chunkAllStreams);
+        }
+
+        return $allStreams;
+    }
+
+    private function setAccessToken(string $accessToken): void
+    {
         $this->accessToken = $accessToken;
         $this->guzzle = new Client([
             'base_uri' => 'https://api.twitch.tv/helix/',
@@ -214,19 +277,19 @@ JSON;
     }
 
     /**
-     * @return mixed
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \Exception
      */
-    public function getOAuthAccessToken()
+    private function updateOAuthAccessToken(): void
     {
         $response = $this->guzzle->post('https://id.twitch.tv/oauth2/token', [
-                'query' => [
-                    'client_id' => $this->clientID,
-                    'client_secret' => $this->clientSecret,
-                    'grant_type' => 'client_credentials'
-                ]
+            'http_errors' => false,
+            'query' => [
+                'client_id' => $this->clientID,
+                'client_secret' => $this->clientSecret,
+                'grant_type' => 'client_credentials'
             ]
-        );
+        ]);
 
         if ($response->getStatusCode() !== 200) {
             throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
@@ -243,33 +306,7 @@ JSON;
         }
 
         $this->setAccessToken($body->access_token);
-
-        return $body;
-    }
-
-    /**
-     * Get channel information for Twitch channels.
-     * First, all live streams are fetched. Then for offline streams the channel information (technically user
-     * information) is fetched. Finally, game information is fetched.
-     * @param array $channels
-     * @return StreamInfo[]
-     * @throws \Exception
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function getStreamInfo(array $channels)
-    {
-        // Get information for live and not live channels and merge the results together
-        $liveStreams = $this->getLiveStreams($channels);
-        $offlineUsers = array_values(array_diff($channels, array_keys($liveStreams)));
-        $offlineStreams = $this->getUsersInfo($offlineUsers);
-
-        /** @var StreamInfo[] $allStreams */
-        $allStreams = array_merge($liveStreams, $offlineStreams);
-
-        // Fetch and add game information to the data
-        $this->addGameInformation($allStreams);
-
-        return $allStreams;
+        $this->cache->set($this->accessTokenCacheKey, $body->access_token,  $body->expires_in);
     }
 
     /**
@@ -278,6 +315,7 @@ JSON;
      * @return StreamInfo[] A map where keys are usernames and values are StreamInfo objects.
      * @throws \Exception
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     private function getLiveStreams(array $channels): array
     {
@@ -287,14 +325,11 @@ JSON;
 
         // Do the API request
         $response = $this->guzzle->request('GET', 'streams', [
+            'http_errors' => false,
             'query' => ['user_login' => $channels ]
         ]);
 
-        var_dump($response->getHeaderLine('Ratelimit-Remaining'));
-
-        if ($response->getStatusCode() !== 200) {
-            throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
-        }
+        $this->checkErrorResponse($response);
 
         $body = json_decode($response->getBody()->getContents());
         $result = $this->validator->schemaValidation($body, Schema::fromJsonString(self::STREAM_SCHEMA));
@@ -343,6 +378,7 @@ JSON;
      * @param array $channels
      * @return StreamInfo[] A map where keys are usernames and values are StreamInfo objects.
      * @throws \Exception
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     private function getUsersInfo(array $channels): array
     {
@@ -352,12 +388,11 @@ JSON;
 
         // Do the API request
         $response = $this->guzzle->get('users', [
+            'http_errors' => false,
             'query' => ['login' => $channels ]
         ]);
 
-        if ($response->getStatusCode() !== 200) {
-            throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
-        }
+        $this->checkErrorResponse($response);
 
         // Validate the result
         $body = json_decode($response->getBody()->getContents());
@@ -402,7 +437,7 @@ JSON;
      * @param StreamInfo[] $streams
      * @throws \Exception
      */
-    private function addGameInformation(array $streams)
+    private function addGameInformation(array $streams): void
     {
         // Get game IDs of live streams
         $gameIds = [];
@@ -440,6 +475,7 @@ JSON;
 
         // Do the API request
         $response = $this->guzzle->get('games', [
+            'http_errors' => false,
             'query' => ['id' => $gameIds ]
         ]);
 
@@ -465,5 +501,22 @@ JSON;
         }
 
         return $output;
+    }
+
+    /**
+     * @param ResponseInterface $response
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Exception
+     */
+    private function checkErrorResponse(ResponseInterface $response): void
+    {
+        // If not authorized clear the cached access token
+        if ($response->getStatusCode() === 401) {
+            $this->cache->delete($this->accessTokenCacheKey);
+        }
+
+        if ($response->getStatusCode() >= 300) {
+            throw new \Exception('Twitch API Error: ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . ' ' . $response->getBody(), $response->getStatusCode());
+        }
     }
 }

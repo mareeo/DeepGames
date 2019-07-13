@@ -54,22 +54,10 @@ return function (ContainerInterface $container) {
 
     $container->set(TwitchIntegration::class, function(Container $c) {
         $twitchSettings = $c->get('settings')['twitch'];
-        $twitch = new TwitchIntegration($twitchSettings['clientID'], $twitchSettings['clientSecret']);
 
         /** @var CacheInterface $cache */
         $cache = $c->get('cache');
-
-        $accessToken = $cache->get($twitchSettings['accessTokenCacheKey']);
-
-        if ($accessToken !== null) {
-           $twitch->setAccessToken($accessToken);
-        } else {
-            $tokenMessage = $twitch->getOAuthAccessToken();
-            $cache->set('twitch.accessToken', $tokenMessage->access_token, $tokenMessage->expires_in);
-            error_log("Updated twitch API OAuth token");
-        }
-
-        return $twitch;
+        return new TwitchIntegration($cache, $twitchSettings['clientID'], $twitchSettings['clientSecret'], $twitchSettings['accessTokenCacheKey']);
     });
 
     $container->set(AngelThumpIntegration::class, function(Container $c) {
