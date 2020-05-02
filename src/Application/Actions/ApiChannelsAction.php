@@ -52,12 +52,13 @@ SQL
             }
         }
 
+
         // Sort the live channels by viewer count
         usort($output['live'], function ($a, $b) {
-            if($a->viewers == $b->viewers)
+            if($a['viewers'] == $b['viewers'])
                 return 0;
 
-            if($a->viewers < $b->viewers)
+            if($a['viewers'] < $b['viewers'])
                 return 1;
             return -1;
         });
