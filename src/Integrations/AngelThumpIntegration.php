@@ -10,30 +10,40 @@ use Opis\JsonSchema\Validator;
 
 class AngelThumpIntegration
 {
-    private const USER_SCHEMA = <<<'JSON'
+    private const USER_SCHEMA = /** @lang JSON */
+        <<<'JSON'
 {
     "type": "object",
     "properties": {
         "username": {
             "type": "string"
         },
-        "poster": {
+        "type": {
             "type": "string"
         },
-        "title": {
+        "thumbnail_url": {
             "type": "string"
         },
-        "live": {
-            "type": "boolean"
-        },
-        "thumbnail": {
-            "type": "string"
-        },
-        "viewers": {
+        "viewer_count": {
             "type": "integer"
+        },
+        "user": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "profile_logo_url": {
+                  "type": "string"
+                }
+            },
+            "required": ["username", "title", "profile_logo_url"]
         }
     },
-    "required": ["username", "poster"]
+    "required": ["username", "type"]
 }
 JSON;
 
@@ -46,7 +56,7 @@ JSON;
     public function __construct()
     {
         $this->guzzle = new Client([
-            'base_uri' => 'https://api.angelthump.com/v1/'
+            'base_uri' => 'https://api.angelthump.com/v2/'
         ]);
 
         $this->validator = new Validator();
@@ -59,7 +69,7 @@ JSON;
      */
     public function getStreamInfo(string $username): StreamInfo
     {
-        $response = $this->guzzle->get($username);
+        $response = $this->guzzle->get("streams/$username");
 
         if ($response->getStatusCode() !== 200) {
             throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
@@ -80,15 +90,24 @@ JSON;
         return $this->makeStreamInfo($body);
     }
 
-    private function makeStreamInfo(\stdClass $userObject): StreamInfo
+    private function makeStreamInfo(\stdClass $streamObject): StreamInfo
     {
+        if ($streamObject->type === "live") {
+            $live = true;
+            $viewers = $streamObject->viewer_count;
+            $thumbnail = $streamObject->thumbnail_url;
+        } else {
+            $live = false;
+            $viewers = 0;
+            $thumbnail = $streamObject->user->profile_logo_url;
+        }
         return new StreamInfo(
-            $userObject->username,
+            $streamObject->user->username,
             'angelthump',
-            $userObject->live ?? false,
-            $userObject->thumbnail ?? $userObject->poster,
-            $userObject->title ?? '',
-            $userObject->viewers ?? 0
+            $live,
+            $thumbnail,
+            $streamObject->user->title,
+            $viewers
         );
     }
 
