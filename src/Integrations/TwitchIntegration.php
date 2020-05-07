@@ -293,7 +293,7 @@ JSON;
         ]);
 
         if ($response->getStatusCode() !== 200) {
-            throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
+            throw new \Exception($response->getReasonPhrase(), $response->getStatusCode());
         }
 
         $body = json_decode($response->getBody()->getContents());
