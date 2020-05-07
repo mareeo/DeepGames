@@ -25,7 +25,7 @@ try {
     updateTwitchChannels($dbh, $twitch);
 } catch (\Throwable | GuzzleException | InvalidArgumentException $e ) {
     echo "Error updating twitch channels: " . get_class($e) . ' - ' . $e->getMessage() . "\n";
-    error_log($e->getMessage());
+    error_log($e);
 }
 
 
@@ -34,7 +34,7 @@ try {
     updateAngelThumpChannels($dbh, $angelThump);
 } catch (\Throwable $e) {
     echo "Error updating AngelThump channels: " . $e->getMessage() . "\n";
-    error_log($e->getMessage());
+    error_log($e);
 }
 
 
@@ -52,7 +52,7 @@ function updateAngelThumpChannels(PDO $dbh, AngelThumpIntegration $angelThump)
             updateDbRow($dbh, $id, $streamInfo);
         } catch (\Throwable $e) {
             echo "Error updating AngelThump channel $username: " . $e->getMessage() . "\n";
-            error_log($e->getMessage());
+            error_log($e);
         }
     }
 

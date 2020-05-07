@@ -271,6 +271,7 @@ JSON;
         $this->guzzle = new Client([
             'base_uri' => 'https://api.twitch.tv/helix/',
             'headers' => [
+                'Client-ID' => $this->clientID,
                 'Authorization' => "Bearer {$this->accessToken}"
             ]
         ]);
