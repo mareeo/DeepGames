@@ -45,7 +45,7 @@ function updateAngelThumpChannels(PDO $dbh, AngelThumpIntegration $angelThump)
     $channels = getAngelThumpChannels($dbh);
 
     foreach ($channels as $username => $id) {
-        echo "Updating $username";
+        echo "Updating $username\n";
 
         try {
             $streamInfo = $angelThump->getStreamInfo($username);
