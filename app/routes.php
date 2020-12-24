@@ -6,14 +6,10 @@ use DeepGamers\Application\Actions\RootApiAction;
 use Slim\App;
 
 return function (App $app) {
-
     $app->get('/', HomeAction::class);
 
-
     $app->group('/api', function (\Slim\Routing\RouteCollectorProxy $group) {
-
         $group->get('/', RootApiAction::class);
-
         $group->get('/channels', \DeepGamers\Application\Actions\ApiChannelsAction::class);
     });
 
@@ -22,27 +18,4 @@ return function (App $app) {
         $group->post('/submit.php', \DeepGamers\Application\Actions\ImgDumpSubmitAction::class);
         $group->get('/remove.php', \DeepGamers\Application\Actions\ImgDumpRemoveAction::class);
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 };

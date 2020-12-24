@@ -4,6 +4,7 @@ declare(strict_types=1);
 use DeepGamers\Integrations\AngelThumpIntegration;
 use DeepGamers\Integrations\TwitchIntegration;
 use DI\Container;
+use DI\ContainerBuilder;
 use League\Plates\Engine;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -14,53 +15,56 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Cache\Psr16Cache;
 
+return function (ContainerBuilder $containerBuilder) {
+    $containerBuilder->addDefinitions([
+        LoggerInterface::class => function (ContainerInterface $c) {
+            $settings = $c->get('settings');
 
-return function (ContainerInterface $container) {
-    $container->set(LoggerInterface::class, function (Container $c) {
-        $settings = $c->get('settings');
+            $loggerSettings = $settings['logger'];
+            $logger = new Logger($loggerSettings['name']);
 
-        $loggerSettings = $settings['logger'];
-        $logger = new Logger($loggerSettings['name']);
+            $processor = new UidProcessor();
+            $logger->pushProcessor($processor);
 
-        $processor = new UidProcessor();
-        $logger->pushProcessor($processor);
+            $handler = new StreamHandler($loggerSettings['path'], $loggerSettings['level']);
+            $logger->pushHandler($handler);
 
-        $handler = new StreamHandler($loggerSettings['path'], $loggerSettings['level']);
-        $logger->pushHandler($handler);
+            return $logger;
+        },
 
-        return $logger;
-    });
+        Engine::class => function(ContainerInterface $c) {
+            return Engine::create($c->get('settings')['renderer']['template_path']);
+        },
 
-    $container->set(Engine::class, function(Container $c) {
-        return Engine::create($c->get('settings')['renderer']['template_path']);
-    });
+        PDO::class => function(ContainerInterface $c) {
+            $db = $c->get('settings')['db'];
+            return new PDO('mysql:host='.$db['host'].';dbname='.$db['dbname'], $db['user'], $db['pass'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]);
+        },
 
-    $container->set('dbh', function(Container $c) {
-        $db = $c->get('settings')['db'];
-        $pdo = new PDO('mysql:host='.$db['host'].';dbname='.$db['dbname'], $db['user'], $db['pass']);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        return $pdo;
-    });
+        CacheInterface::class => function () {
+            return new Psr16Cache(
+                new PhpFilesAdapter('', 0, __DIR__ . '/../var/cache')
+            );
+        },
 
-    $container->set(/**
-     * @return Psr16Cache
-     */
-        'cache', function () {
-        return new Psr16Cache(
-            new PhpFilesAdapter('', 0, __DIR__ . '/../cache')
-        );
-    });
+        TwitchIntegration::class => function(ContainerInterface $c) {
+            $twitchSettings = $c->get('settings')['twitch'];
 
-    $container->set(TwitchIntegration::class, function(Container $c) {
-        $twitchSettings = $c->get('settings')['twitch'];
+            $cache = $c->get(CacheInterface::class);
+            return new TwitchIntegration($cache, $twitchSettings['clientID'], $twitchSettings['clientSecret'], $twitchSettings['accessTokenCacheKey']);
+        },
 
-        /** @var CacheInterface $cache */
-        $cache = $c->get('cache');
-        return new TwitchIntegration($cache, $twitchSettings['clientID'], $twitchSettings['clientSecret'], $twitchSettings['accessTokenCacheKey']);
-    });
+        AngelThumpIntegration::class => function() {
+            return new AngelThumpIntegration();
+        }
 
-    $container->set(AngelThumpIntegration::class, function(Container $c) {
-        return new AngelThumpIntegration();
-    });
+
+
+
+
+    ]);
 };

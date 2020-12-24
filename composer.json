@@ -3,20 +3,20 @@
     "description": "Deep Games website",
     "type": "project",
     "require": {
-        "slim/slim": "4.0.0-beta",
+        "php": "^7.2",
+        "ext-gd": "*",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "guzzlehttp/guzzle": "^6.3",
+        "league/plates": "v4.0.0-alpha",
+        "monolog/monolog": "^2.1",
         "nyholm/psr7": "^1.1",
         "nyholm/psr7-server": "^0.3.0",
-        "guzzlehttp/guzzle": "^6.3",
-        "ext-json": "*",
         "opis/json-schema": "^1.0",
-        "php": "^7.2",
-        "ext-pdo": "*",
         "php-di/php-di": "^6.0",
-        "monolog/monolog": "^1.24",
-        "league/plates": "v4.0.0-alpha",
-        "ext-gd": "*",
-        "symfony/cache": "^4.3",
-        "psr/simple-cache": "^1.0"
+        "psr/simple-cache": "^1.0",
+        "slim/slim": "^4.7",
+        "symfony/cache": "^5.0"
     },
     "authors": [
         {
@@ -28,5 +28,8 @@
         "psr-4": {
             "DeepGamers\\": "src/"
         }
+    },
+    "config": {
+        "sort-packages": true
     }
 }
