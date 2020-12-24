@@ -3,21 +3,11 @@
 
 namespace DeepGamers\Application\Actions;
 
-
-use DI\Container;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 
 class RootApiAction
 {
-    /** @var Container */
-    private $container;
-
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-    }
-
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
         $payload = json_encode([

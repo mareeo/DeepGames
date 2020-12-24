@@ -3,7 +3,6 @@
 
 namespace DeepGamers\Application\Actions;
 
-use DI\Container;
 use League\Plates\Engine;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;

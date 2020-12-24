@@ -3,27 +3,22 @@
 
 namespace DeepGamers\Application\Actions;
 
-
 use DeepGamers\ImgDump;
-use DI\Container;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
-use PDO;
 
 class ImgDumpSubmitAction
 {
-    /** @var Container */
-    private $container;
+    /** @var ImgDump */
+    private $imgDump;
 
-    public function __construct(Container $container)
+    public function __construct(ImgDump $imgDump)
     {
-        $this->container = $container;
+        $this->imgDump = $imgDump;
     }
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
-        $dbh = $this->container->get(PDO::class);
-        $imgDump = new ImgDump($dbh);
-        return $imgDump->submitImage($request, $response);
+        return $this->imgDump->submitImage($request, $response);
     }
 }

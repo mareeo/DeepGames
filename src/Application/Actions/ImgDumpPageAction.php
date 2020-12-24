@@ -4,33 +4,27 @@
 namespace DeepGamers\Application\Actions;
 
 use DeepGamers\ImgDump;
-use DI\Container;
 use League\Plates\Engine;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
-use PDO;
 
 class ImgDumpPageAction
 {
-    /** @var Container */
-    private $container;
-
     /** @var Engine */
     private $plates;
 
-    public function __construct(Container $container)
+    /** @var ImgDump */
+    private $imgDump;
+
+    public function __construct(Engine $engine, ImgDump $imgDump)
     {
-        $this->container = $container;
-        $this->plates = $this->container->get(Engine::class);
+        $this->plates = $engine;
+        $this->imgDump = $imgDump;
     }
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
-        $dbh = $this->container->get(PDO::class);
-
-        $imgDump = new ImgDump($dbh);
-
-        $body = $this->plates->render('imgdump.phtml', ['imgDump' => $imgDump]);
+        $body = $this->plates->render('imgdump.phtml', ['imgDump' => $this->imgDump]);
         $response->getBody()->write($body);
         return $response;
     }

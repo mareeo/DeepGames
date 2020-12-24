@@ -3,20 +3,18 @@
 
 namespace DeepGamers\Application\Actions;
 
-
-use DI\Container;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
 
 class ApiChannelsAction
 {
-    /** @var Container */
-    private $container;
+    /** @var PDO */
+    private $dbh;
 
-    public function __construct(Container $container)
+    public function __construct(PDO $dbh)
     {
-        $this->container = $container;
+        $this->dbh = $dbh;
     }
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
@@ -28,16 +26,14 @@ class ApiChannelsAction
 
     private function getChannels(): array
     {
-        $dbh = $this->container->get(PDO::class);
-
-        $query = $dbh->prepare(<<<SQL
+        $query = $this->dbh->prepare(<<<SQL
     SELECT * FROM stream
 SQL
         );
 
         $query->execute();
 
-        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
+        $results = $query->fetchAll(PDO::FETCH_ASSOC);
 
         $output = [
             "live" => [],
