@@ -20,7 +20,7 @@ $dependencies($container);
 
 try {
     /** @var PDO $dbh */
-    $dbh = $container->get('dbh');
+    $dbh = $container->get(PDO::class);
     $twitch = $container->get(TwitchIntegration::class);
     updateTwitchChannels($dbh, $twitch);
 } catch (\Throwable | GuzzleException | InvalidArgumentException $e ) {

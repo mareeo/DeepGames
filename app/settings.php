@@ -1,39 +1,34 @@
 <?php
 declare(strict_types=1);
 
-use DI\ContainerBuilder;
 use Monolog\Logger;
 
-return function (ContainerBuilder $containerBuilder) {
+return [
+    'settings' => [
+        'displayErrorDetails' => true, // Should be set to false in production
+        'logger' => [
+            'name' => 'slim-app',
+            'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
+            'level' => Logger::DEBUG,
+        ],
 
-    // Global Settings Object
-    $containerBuilder->addDefinitions([
-        'settings' => [
-            'displayErrorDetails' => true, // Should be set to false in production
-            'logger' => [
-                'name' => 'slim-app',
-                'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
-                'level' => Logger::DEBUG,
-            ],
+        // Renderer settings
+        'renderer' => [
+            'template_path' => __DIR__ . '/../templates/',
+        ],
 
-            // Renderer settings
-            'renderer' => [
-                'template_path' => __DIR__ . '/../templates/',
-            ],
+        // Database settings
+        'db' => [
+            'host' => '',
+            'user' => '',
+            'pass' => '',
+            'dbname' => ''
+        ],
 
-            // Database settings
-            'db' => [
-                'host' => '',
-                'user' => '',
-                'pass' => '',
-                'dbname' => ''
-            ],
-
-            'twitch' => [
-                'clientID' => 'ere8uvpivoc6kmq7nsa7j0ivw9vrse',
-                'clientSecret' => '7gk42syi9y8iayzcjiizh49m0ijjwt',
-                'accessTokenCacheKey' => 'twitch.accessToken'
-            ]
+        'twitch' => [
+            'clientID' => 'ere8uvpivoc6kmq7nsa7j0ivw9vrse',
+            'clientSecret' => '7gk42syi9y8iayzcjiizh49m0ijjwt',
+            'accessTokenCacheKey' => 'twitch.accessToken'
         ]
-    ]);
-};
+    ]
+];

@@ -14,13 +14,8 @@ if (true) {
     $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
 }
 
-// Set up settings
-$settings = require __DIR__ . '/../app/settings.php';
-$settings($containerBuilder);
-
-// Set up dependencies
-$dependencies = require __DIR__ . '/../app/dependencies.php';
-$dependencies($containerBuilder);
+$containerBuilder->addDefinitions(__DIR__ . '/../app/settings.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../app/dependencies.php');
 
 // Build PHP-DI Container instance
 $container = $containerBuilder->build();

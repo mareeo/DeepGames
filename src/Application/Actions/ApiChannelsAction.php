@@ -7,6 +7,7 @@ namespace DeepGamers\Application\Actions;
 use DI\Container;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
+use PDO;
 
 class ApiChannelsAction
 {
@@ -27,8 +28,7 @@ class ApiChannelsAction
 
     private function getChannels(): array
     {
-        /** @var \PDO $dbh */
-        $dbh = $this->container->get('dbh');
+        $dbh = $this->container->get(PDO::class);
 
         $query = $dbh->prepare(<<<SQL
     SELECT * FROM stream

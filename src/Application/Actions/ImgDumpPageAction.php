@@ -8,6 +8,7 @@ use DI\Container;
 use League\Plates\Engine;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
+use PDO;
 
 class ImgDumpPageAction
 {
@@ -25,8 +26,7 @@ class ImgDumpPageAction
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
-        /** @var \PDO $dbh */
-        $dbh = $this->container->get('dbh');
+        $dbh = $this->container->get(PDO::class);
 
         $imgDump = new ImgDump($dbh);
 

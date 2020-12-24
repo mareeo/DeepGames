@@ -8,6 +8,7 @@ use DeepGamers\ImgDump;
 use DI\Container;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
+use PDO;
 
 class ImgDumpRemoveAction
 {
@@ -21,8 +22,7 @@ class ImgDumpRemoveAction
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
-        /** @var \PDO $dbh */
-        $dbh = $this->container->get('dbh');
+        $dbh = $this->container->get(PDO::class);
         $imgDump = new ImgDump($dbh);
         return $imgDump->removeImage($request, $response);
     }
