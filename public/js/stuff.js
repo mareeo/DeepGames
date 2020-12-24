@@ -360,19 +360,19 @@ function changeChannel(channelData) {
    let deepChatChannels = ['gamesdonequick', 'nintendo', 'twitch'];
 
    if (currentChannel.service === 'twitch') {
-      playerCode = `<iframe src="https://player.twitch.tv/?channel=${currentChannel.name}" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
+      playerCode = `<iframe src="https://player.twitch.tv/?channel=${currentChannel.name}&parent=www.deepgamers.com" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
       if (deepChatChannels.includes(currentChannel.name)) {
-         chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+         chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat?darkpopout&parent=www.deepgamers.com" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
       } else {
-         chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+         chatCode = `<iframe src="https://www.twitch.tv/embed/${currentChannel.name}/chat?darkpopout&parent=www.deepgamers.com" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
       }
    } else if (currentChannel.service === 'angelthump') {
       playerCode = `<iframe src="https://angelthump.com/${currentChannel.name}/embed" frameborder="0" allowfullscreen="true" scrolling="no" height="100%" width="100%"></iframe>`;
 
       if (currentChannel.name === 'hehe') {
-         chatCode = `<iframe src="https://www.twitch.tv/embed/hehefunnys/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+         chatCode = `<iframe src="https://www.twitch.tv/embed/hehefunnys/chat?darkpopout&parent=www.deepgamers.com" frameborder="0" scrolling="no" height="100%" width="100%" ></iframe>`
       } else {
-         chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat?darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`
+         chatCode = `<iframe src="https://www.twitch.tv/embed/deepgamers/chat?darkpopout&parent=www.deepgamers.com" frameborder="0" scrolling="no" height="100%" width="100%" ></iframe>`
       }
    }
 
