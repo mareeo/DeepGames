@@ -8,7 +8,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\UploadedFile;
 
-class ImgDump
+class ImgDumpService
 {
     const MAX_IMG_SIZE = 4096;
     const IMG_DIR      = "//www.deepgamers.com/userimages/";

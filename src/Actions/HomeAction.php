@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DeepGamers\Application\Actions;
+namespace App\Actions;
 
 use League\Plates\Engine;
 use Nyholm\Psr7\Response;

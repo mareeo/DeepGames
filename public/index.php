@@ -12,26 +12,18 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $containerBuilder = new ContainerBuilder();
 
-if (true) {
+if (false) {
     $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
 }
 
 $containerBuilder->addDefinitions(__DIR__ . '/../app/settings.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../app/settings.private.php');
 $containerBuilder->addDefinitions(__DIR__ . '/../app/dependencies.php');
 
 // Build PHP-DI Container instance
 $container = $containerBuilder->build();
 
-$responseFactory = new Psr17Factory();
-$callableResolver = new CallableResolver($container);
-$routeCollector = new Slim\Routing\RouteCollector($responseFactory, $callableResolver, $container, null, null, __DIR__ . '/../var/cache/route.cache');
-
-AppFactory::setResponseFactory($responseFactory);
-AppFactory::setContainer($container);
-AppFactory::setCallableResolver($callableResolver);
-AppFactory::setRouteCollector($routeCollector);
-
-$app = AppFactory::create();
+$app = AppFactory::createFromContainer($container);
 
 // Register middleware
 $middleware = require __DIR__ . '/../app/middleware.php';

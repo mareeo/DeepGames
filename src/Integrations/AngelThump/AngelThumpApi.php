@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Integrations;
+namespace App\Integrations\AngelThump;
 
 use App\DB\Stream;
 use Exception;
@@ -10,7 +10,7 @@ use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\Validator;
 use stdClass;
 
-class AngelThumpIntegration
+class AngelThumpApi
 {
     private const USER_SCHEMA = /** @lang JSON */
         <<<'JSON'

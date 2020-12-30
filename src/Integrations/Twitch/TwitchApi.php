@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Integrations;
+namespace App\Integrations\Twitch;
 
 use App\DB\Stream;
 use Exception;
@@ -16,10 +16,10 @@ use stdClass;
 /**
  * Interacts with the "New Twitch API" to get current status of channels.
  * Up to 100 channels may be fetched in a single request from the Twitch API, so not many API requests are needed.
- * Class TwitchIntegration
+ * Class TwitchApi
  * @package App\Integrations
  */
-class TwitchIntegration
+class TwitchApi
 {
     private const OAUTH_TOKEN_SCHEMA = <<<'JSON'
 {

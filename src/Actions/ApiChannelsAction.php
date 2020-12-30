@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DeepGamers\Application\Actions;
+namespace App\Actions;
 
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;

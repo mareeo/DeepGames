@@ -1,9 +1,9 @@
 <?php
 
 
-namespace DeepGamers\Application\Actions;
+namespace App\Actions;
 
-use DeepGamers\ImgDump;
+use App\ImgDump;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 

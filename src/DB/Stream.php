@@ -2,31 +2,22 @@
 
 namespace App\DB;
 
-class StreamInfo
+use DateTime;
+
+class Stream
 {
-    /** @var string */
-    public $name;
+    private int $id;
+    public string $name;
+    public string $service;
+    public ?DateTime $lastUpdated;
+    public ?DateTime $lastLive;
+    public ?string $title;
+    public ?string $game;
+    public ?string $thumbnail;
+    public bool $live;
+    public int $viewers;
 
-    /** @var string */
-    public $service;
-
-    /** @var string */
-    public $title;
-
-    /** @var string */
-    public $game;
-
-    /** @var int */
-    public $twitchGameId;
-
-    /** @var string */
-    public $thumbnail;
-
-    /** @var bool */
-    public $live;
-
-    /** @var int */
-    public $viewers;
+    public ?int $twitchGameId;
 
     public function __construct(string $name, string $service, bool $live, string $thumbnail, string $title, int $viewers)
     {
