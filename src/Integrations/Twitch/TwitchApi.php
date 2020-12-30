@@ -1,18 +1,23 @@
 <?php
 
-namespace DeepGamers\Integrations;
+namespace App\Integrations;
 
+use App\DB\Stream;
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\Validator;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
+use stdClass;
 
 /**
  * Interacts with the "New Twitch API" to get current status of channels.
  * Up to 100 channels may be fetched in a single request from the Twitch API, so not many API requests are needed.
  * Class TwitchIntegration
- * @package DeepGamers\Integrations
+ * @package App\Integrations
  */
 class TwitchIntegration
 {
@@ -175,26 +180,19 @@ JSON;
 }
 JSON;
 
-    /** @var Client */
-    private $guzzle;
+    private Client $guzzle;
 
-    /** @var CacheInterface */
-    private $cache;
+    private CacheInterface $cache;
 
-    /** @var string */
-    private $accessTokenCacheKey;
+    private string $accessTokenCacheKey;
 
-    /** @var Validator */
-    private $validator;
+    private Validator $validator;
 
-    /** @var string */
-    private $clientID;
+    private string $clientID;
 
-    /** @var string */
-    private $clientSecret;
+    private string $clientSecret;
 
-    /** @var string */
-    private $accessToken;
+    private string $accessToken;
 
     /**
      * TwitchIntegration constructor.
@@ -202,7 +200,7 @@ JSON;
      * @param string $clientID
      * @param string $clientSecret
      * @param string $accessTokenCacheKey
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function __construct(CacheInterface $cache, string $clientID, string $clientSecret, string $accessTokenCacheKey)
     {
@@ -234,14 +232,14 @@ JSON;
      * First, all live streams are fetched. Then for offline streams the channel information (technically user
      * information) is fetched. Finally, game information is fetched.
      * @param array $channels
-     * @return StreamInfo[]
-     * @throws \Exception
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @return Stream[]
+     * @throws Exception
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
      */
     public function getStreamInfo(array $channels): array
     {
-        /** @var StreamInfo[] $allStreams */
+        /** @var Stream[] $allStreams */
         $allStreams = [];
 
         // Twitch API calls allow a max of 100 streams per request
@@ -252,7 +250,7 @@ JSON;
             $offlineUsers = array_values(array_diff($channelsChunk, array_keys($liveStreams)));
             $offlineStreams = $this->getUsersInfo($offlineUsers);
 
-            /** @var StreamInfo[] $chunkAllStreams */
+            /** @var Stream[] $chunkAllStreams */
             $chunkAllStreams = array_merge($liveStreams, $offlineStreams);
 
             // Fetch and add game information to the data
@@ -278,8 +276,8 @@ JSON;
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Exception
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     private function updateOAuthAccessToken(): void
     {
@@ -293,7 +291,7 @@ JSON;
         ]);
 
         if ($response->getStatusCode() !== 200) {
-            throw new \Exception($response->getReasonPhrase(), $response->getStatusCode());
+            throw new Exception($response->getReasonPhrase(), $response->getStatusCode());
         }
 
         $body = json_decode($response->getBody()->getContents());
@@ -303,7 +301,7 @@ JSON;
             $error = $result->getFirstError();
             $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
             $message .= json_encode($error->keywordArgs());
-            throw new \Exception("Invalid Twitch API response: $message");
+            throw new Exception("Invalid Twitch API response: $message");
         }
 
         $this->setAccessToken($body->access_token);
@@ -313,10 +311,10 @@ JSON;
     /**
      * Get current stream information for any live streams from the Twitch API.
      * @param array $channels
-     * @return StreamInfo[] A map where keys are usernames and values are StreamInfo objects.
-     * @throws \Exception
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @return Stream[] A map where keys are usernames and values are StreamInfo objects.
+     * @throws Exception
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
      */
     private function getLiveStreams(array $channels): array
     {
@@ -339,7 +337,7 @@ JSON;
             $error = $result->getFirstError();
             $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
             $message .= json_encode($error->keywordArgs());
-            throw new \Exception("Invalid Twitch API response: $message");
+            throw new Exception("Invalid Twitch API response: $message");
         }
 
         // Build StreamInfo map
@@ -354,13 +352,13 @@ JSON;
 
     /**
      * Make a StreamInfo object from the live stream Twitch API response.
-     * @param \stdClass $streamObject
-     * @return StreamInfo
+     * @param stdClass $streamObject
+     * @return Stream
      */
-    private function makeFromStream(\stdClass $streamObject): StreamInfo
+    private function makeFromStream(stdClass $streamObject): Stream
     {
         $thumbnail = str_replace('{width}x{height}', '320x180', $streamObject->thumbnail_url);
-        $streamInfo = new StreamInfo(
+        $streamInfo = new Stream(
             $streamObject->user_name,
             'twitch',
             true,
@@ -377,9 +375,9 @@ JSON;
      * Get user (channel) information from the Twitch API.
      * Only needed for offline channels.
      * @param array $channels
-     * @return StreamInfo[] A map where keys are usernames and values are StreamInfo objects.
-     * @throws \Exception
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @return Stream[] A map where keys are usernames and values are StreamInfo objects.
+     * @throws Exception
+     * @throws InvalidArgumentException
      */
     private function getUsersInfo(array $channels): array
     {
@@ -403,7 +401,7 @@ JSON;
             $error = $result->getFirstError();
             $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
             $message .= json_encode($error->keywordArgs());
-            throw new \Exception("Invalid Twitch API response: $message");
+            throw new Exception("Invalid Twitch API response: $message");
         }
 
         // Build StreamInfo map
@@ -417,12 +415,12 @@ JSON;
 
     /**
      * Make a StreamInfo object from the user Twitch API response.
-     * @param \stdClass $userObject
-     * @return StreamInfo
+     * @param stdClass $userObject
+     * @return Stream
      */
-    private function makeFromUser(\stdClass $userObject): StreamInfo
+    private function makeFromUser(stdClass $userObject): Stream
     {
-        return new StreamInfo(
+        return new Stream(
             $userObject->login,
             'twitch',
             false,
@@ -435,8 +433,8 @@ JSON;
     /**
      * Fetches game information (name, boxart) for stream from the Twitch API and
      * update the StreamInfo data structures with the game name.
-     * @param StreamInfo[] $streams
-     * @throws \Exception
+     * @param Stream[] $streams
+     * @throws Exception
      */
     private function addGameInformation(array $streams): void
     {
@@ -466,7 +464,7 @@ JSON;
      * Get game information from the Twitch API.
      * @param array $gameIds
      * @return array A map where values are Twitch game IDs and values keyed arrays: ['box_art_url', 'id', 'name']
-     * @throws \Exception
+     * @throws Exception
      */
     private function getGames(array $gameIds): array
     {
@@ -481,7 +479,7 @@ JSON;
         ]);
 
         if ($response->getStatusCode() !== 200) {
-            throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
+            throw new Exception($response->getStatusCode(), $response->getReasonPhrase());
         }
 
         // Validate the response
@@ -492,7 +490,7 @@ JSON;
             $error = $result->getFirstError();
             $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
             $message .= json_encode($error->keywordArgs());
-            throw new \Exception("Invalid Twitch API response: $message");
+            throw new Exception("Invalid Twitch API response: $message");
         }
 
         // Build game information map
@@ -506,8 +504,8 @@ JSON;
 
     /**
      * @param ResponseInterface $response
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Exception
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     private function checkErrorResponse(ResponseInterface $response): void
     {
@@ -517,7 +515,7 @@ JSON;
         }
 
         if ($response->getStatusCode() >= 300) {
-            throw new \Exception('Twitch API Error: ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . ' ' . $response->getBody(), $response->getStatusCode());
+            throw new Exception('Twitch API Error: ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase() . ' ' . $response->getBody(), $response->getStatusCode());
         }
     }
 }

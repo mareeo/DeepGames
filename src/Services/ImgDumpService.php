@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DeepGamers;
+namespace App\Services;
 
 
 use Nyholm\Psr7\Response;
@@ -231,7 +231,7 @@ class ImgDump
             $this->makeThumb($destFileName, $extension);
         }
 
-        $response->getBody()->write('<META HTTP-EQUIV="Refresh" CONTENT="1; URL=/imgdump/"><h1>File Uploaded Successfully!</h1><br><a href="index.php">Back to Gallery</a>');
+        $response->getBody()->write('<META HTTP-EQUIV="Refresh" CONTENT="1; URL=/imgdump/"><h1>File Uploaded Successfully!</h1><br><a href="../../public/index.php">Back to Gallery</a>');
 
         return $response;
     }

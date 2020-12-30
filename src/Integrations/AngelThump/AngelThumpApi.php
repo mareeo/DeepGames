@@ -1,12 +1,14 @@
 <?php
 
 
-namespace DeepGamers\Integrations;
+namespace App\Integrations;
 
-
+use App\DB\Stream;
+use Exception;
 use GuzzleHttp\Client;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\Validator;
+use stdClass;
 
 class AngelThumpIntegration
 {
@@ -47,11 +49,9 @@ class AngelThumpIntegration
 }
 JSON;
 
-    /** @var Client */
-    private $guzzle;
+    private Client $guzzle;
 
-    /** @var Validator */
-    private $validator;
+    private Validator $validator;
 
     public function __construct()
     {
@@ -64,15 +64,15 @@ JSON;
 
     /**
      * @param string $username
-     * @return StreamInfo
-     * @throws \Exception
+     * @return Stream
+     * @throws Exception
      */
-    public function getStreamInfo(string $username): StreamInfo
+    public function getStreamInfo(string $username): Stream
     {
         $response = $this->guzzle->get("streams/$username");
 
         if ($response->getStatusCode() !== 200) {
-            throw new \Exception($response->getStatusCode(), $response->getReasonPhrase());
+            throw new Exception($response->getStatusCode(), $response->getReasonPhrase());
         }
 
         $contents = $response->getBody()->getContents();
@@ -84,13 +84,13 @@ JSON;
             $error = $result->getFirstError();
             $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
             $message .= json_encode($error->keywordArgs());
-            throw new \Exception("Invalid AngelThump API response: $message");
+            throw new Exception("Invalid AngelThump API response: $message");
         }
 
         return $this->makeStreamInfo($body);
     }
 
-    private function makeStreamInfo(\stdClass $streamObject): StreamInfo
+    private function makeStreamInfo(stdClass $streamObject): Stream
     {
         if ($streamObject->type === "live") {
             $live = true;
@@ -101,7 +101,7 @@ JSON;
             $viewers = 0;
             $thumbnail = $streamObject->user->profile_logo_url;
         }
-        return new StreamInfo(
+        return new Stream(
             $streamObject->user->username,
             'angelthump',
             $live,

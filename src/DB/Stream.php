@@ -1,7 +1,6 @@
 <?php
 
-namespace DeepGamers\Integrations;
-
+namespace App\DB;
 
 class StreamInfo
 {
