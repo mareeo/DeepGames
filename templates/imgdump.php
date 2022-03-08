@@ -1,3 +1,10 @@
+<?php
+use League\Plates\Extension\RenderContext\RenderContext;
+
+/** @var $this RenderContext */
+
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,7 +21,7 @@
 
 </head>
 <body>
-<?php $v->insert('header.phtml'); ?>
+<?php $this->insert('header'); ?>
 <div class=content>
     <div class=title>imgDump</div><br />
     <div class=sub-title>Quick and easy chat-linkable images</div>

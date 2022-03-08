@@ -31,7 +31,7 @@ return [
     },
 
     Engine::class => function(ContainerInterface $c) {
-        return Engine::create($c->get('settings')['renderer.template_path']);
+        return new Engine($c->get('settings')['renderer.template_path']);
     },
 
     PDO::class => function(ContainerInterface $c) {

@@ -1,7 +1,7 @@
 <?php
 use League\Plates\Extension\RenderContext\RenderContext;
 
-/** @var $v RenderContext */
+/** @var $this RenderContext */
 
 ?>
 
@@ -25,7 +25,7 @@ use League\Plates\Extension\RenderContext\RenderContext;
     <link rel="stylesheet" type="text/css" href="css/normalize.css" />
 </head>
 <body>
-<?php $v->insert('header.phtml'); ?>
+<?php $this->insert('header'); ?>
 <div id="topContainer">
     <div id="leftContainer">
         <div id="player"></div>

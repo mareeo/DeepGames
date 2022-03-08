@@ -19,7 +19,7 @@ class HomeAction
 
     public function __invoke(ServerRequest $request, Response $response): Response
     {
-        $body = $this->plates->render('index.phtml');
+        $body = $this->plates->render('index');
         $response->getBody()->write($body);
         return $response;
     }

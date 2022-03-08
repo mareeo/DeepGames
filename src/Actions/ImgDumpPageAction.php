@@ -24,7 +24,7 @@ class ImgDumpPageAction
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
-        $body = $this->plates->render('imgdump.phtml', ['imgDump' => $this->imgDump]);
+        $body = $this->plates->render('imgdump', ['imgDump' => $this->imgDump]);
         $response->getBody()->write($body);
         return $response;
     }

@@ -12,7 +12,7 @@ return [
         'logger.level' => Logger::DEBUG,
 
         // Renderer settings
-        'renderer.template_path' => __DIR__ . '/../templates/',
+        'renderer.template_path' => __DIR__ . '/../templates',
 
         // Database settings
         'db.host' => 'localhost',
