@@ -2,3 +2,4 @@ vendor/
 .idea/
 test.php
 app/settings.private.php
+var/

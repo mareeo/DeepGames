@@ -60,7 +60,12 @@ class StreamUpdateService
 
             try {
                 $streamInfo = $this->angelThump->getStreamInfo($username);
-                $this->updateDbRow($id, $streamInfo);
+                if ($streamInfo === null) {
+                    $streamInfo = $this->angelThump->getUserInfo($username);
+                }
+                if ($streamInfo instanceof Stream) {
+                    $this->updateDbRow($id, $streamInfo);
+                }
             } catch (Throwable $e) {
                 echo "Error updating AngelThump channel $username: " . $e->getMessage() . "\n";
                 error_log($e);
