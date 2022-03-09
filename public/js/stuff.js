@@ -225,7 +225,7 @@ function processData(data) {
          newlyLive.push(channel.name);
 
       // If we did have data for this channel before and it wasn't live, it's newly live
-      } else if (!oldData[channel.service][channel.name].live === '1') {
+      } else if (!oldData[channel.service][channel.name].live == true) {
          console.error("Data existed but wasn't live for" + channel.service + channel.name);
          newlyLive.push(channel.name);
       }
@@ -293,7 +293,7 @@ function showTeam() {
          var targetDiv;
 
          // Render the appropriate template based upon live status
-         if(channel.live === '1') {
+         if(channel.live == true) {
             html = liveTemplate(channel);
             targetDiv = liveDiv;
          } else {
@@ -471,7 +471,7 @@ function getLiveChannels() {
 
    $.each(channelData, function(service, data) {
       $.each(data, function(index, channelData) {
-         if(channelData.live === '1') {
+         if(channelData.live == true) {
             liveChannels.push(channelData);
          }
       });
