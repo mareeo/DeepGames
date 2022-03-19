@@ -4,17 +4,17 @@ use App\Services\StreamUpdateService;
 use DI\ContainerBuilder;
 use Psr\SimpleCache\InvalidArgumentException;
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 $containerBuilder = new ContainerBuilder();
 
 if (false) {
-    $containerBuilder->enableCompilation(__DIR__ . '/var/cache');
+    $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
 }
 
-$containerBuilder->addDefinitions(__DIR__ . '/app/settings.php');
-$containerBuilder->addDefinitions(__DIR__ . '/app/settings.private.php');
-$containerBuilder->addDefinitions(__DIR__ . '/app/dependencies.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../app/settings.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../app/settings.private.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../app/dependencies.php');
 
 // Build PHP-DI Container instance
 try {

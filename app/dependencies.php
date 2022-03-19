@@ -1,19 +1,20 @@
 <?php
 declare(strict_types=1);
 
-use App\Integrations\AngelThump\AngelThumpApi;
-use App\Integrations\Twitch\TwitchApi;
-use App\Services\StreamUpdateService;
-use League\Plates\Engine;
-use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Monolog\Processor\UidProcessor;
-use Psr\Container\ContainerInterface;
-use Psr\SimpleCache\CacheInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
-use Symfony\Component\Cache\Psr16Cache;
 use function DI\autowire;
+use League\Plates\Engine;
+use Psr\Log\LoggerInterface;
+use App\DB\ChannelRepository;
+use Monolog\Handler\StreamHandler;
+use Monolog\Processor\UidProcessor;
+use Psr\SimpleCache\CacheInterface;
+use App\Services\StreamUpdateService;
+use Psr\Container\ContainerInterface;
+use App\Integrations\Twitch\TwitchApi;
+use Symfony\Component\Cache\Psr16Cache;
+use App\Integrations\AngelThump\AngelThumpApi;
+use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 
 return [
     LoggerInterface::class => function (ContainerInterface $c) {
@@ -57,7 +58,10 @@ return [
     },
 
     AngelThumpApi::class => autowire(),
+    StreamUpdateService::class => autowire(),
+    ChannelRepository::class => autowire(),
+    StreamRepository::class => autowire()
 
-    StreamUpdateService::class => autowire()
+
 ];
 
