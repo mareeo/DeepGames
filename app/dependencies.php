@@ -1,20 +1,21 @@
 <?php
 declare(strict_types=1);
 
-use Monolog\Logger;
-use function DI\autowire;
-use League\Plates\Engine;
-use Psr\Log\LoggerInterface;
 use App\DB\ChannelRepository;
-use Monolog\Handler\StreamHandler;
-use Monolog\Processor\UidProcessor;
-use Psr\SimpleCache\CacheInterface;
-use App\Services\StreamUpdateService;
-use Psr\Container\ContainerInterface;
+use App\DB\StreamRepository;
+use App\Integrations\AngelThumpApiClient;
 use App\Integrations\Twitch\TwitchApi;
-use Symfony\Component\Cache\Psr16Cache;
-use App\Integrations\AngelThump\AngelThumpApi;
+use App\Services\StreamUpdateService;
+use League\Plates\Engine;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Monolog\Processor\UidProcessor;
+use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+use function DI\autowire;
 
 return [
     LoggerInterface::class => function (ContainerInterface $c) {
@@ -57,7 +58,7 @@ return [
         return new TwitchApi($cache, $settings['twitch.clientID'], $settings['twitch.clientSecret'], $settings['twitch.accessTokenCacheKey']);
     },
 
-    AngelThumpApi::class => autowire(),
+    AngelThumpApiClient::class => autowire(),
     StreamUpdateService::class => autowire(),
     ChannelRepository::class => autowire(),
     StreamRepository::class => autowire()
