@@ -3,10 +3,11 @@
 
 namespace App\Services;
 
-
+use App\DB\ChannelRepository;
 use App\DB\Stream;
-use App\Integrations\AngelThump\AngelThumpApi;
-use App\Integrations\Twitch\TwitchApi;
+use App\DB\StreamRepository;
+use App\Integrations\AngelThumpApiClient;
+use App\Integrations\TwitchApiClient;
 use GuzzleHttp\Exception\GuzzleException;
 use PDO;
 use Psr\SimpleCache\InvalidArgumentException;
@@ -15,14 +16,19 @@ use Throwable;
 class StreamUpdateService
 {
     private PDO $pdo;
-    private TwitchApi $twitch;
-    private AngelThumpApi $angelThump;
+    private TwitchApiClient $twitch;
+    private AngelThumpApiClient $angelThump;
+    private ChannelRepository $channelRepository;
+    private StreamRepository $streamRepository;
 
-    public function __construct(PDO $pdo, TwitchApi $twitch, AngelThumpApi $angelThump)
+
+    public function __construct(PDO $pdo, TwitchApiClient $twitch, AngelThumpApiClient $angelThump)
     {
         $this->pdo = $pdo;
         $this->twitch = $twitch;
         $this->angelThump = $angelThump;
+        $this->channelRepository = new ChannelRepository($this->pdo);
+        $this->streamRepository = new StreamRepository($this->pdo);
     }
 
     /**
@@ -35,18 +41,54 @@ class StreamUpdateService
         echo "Updating twitch channels...\n";
 
         // Get all twitch channels from the database
-        $twitchChannels = $this->getTwitchChannels();
-        $twitchUsernames = array_keys($twitchChannels);
+        $twitchChannels = $this->channelRepository->getChannelsForService('twitch');
 
-        // Get current stream info from Twitch API
-        $streamInfoMap = $this->twitch->getStreamInfo($twitchUsernames);
+        $twitchUsernames = [];
+
+        foreach ($twitchChannels as $twitchChannel) {
+            $twitchUsernames[] = $twitchChannel->name;
+        }
+
+        $twitchUsernames[] = 'thonggdelonge';
+
+        $liveStreams = [];
+        $offlineUsers = [];
+
+        // Twitch API calls allow a max of 100 streams per request
+        foreach(array_chunk($twitchUsernames, 100) as $channelsChunk) {
+
+            // Get current streams
+            $streams = $this->twitch->getStreams($channelsChunk);
+
+            $liveUsernames = [];
+
+            foreach ($streams as $stream) {
+                $liveStreams[$stream->user_login] = $stream;
+                $liveUsernames[] = $stream->user_login;
+            }
+
+            // Get information for live and not live users$usernames and merge the results together
+            $offlineUsernames = array_values(array_diff($channelsChunk, $liveUsernames));
+            $users = $this->twitch->getUsers($offlineUsernames);
+
+            foreach ($users as $user) {
+                $offlineUsers[$user->login] = $user;
+            }
+        }
+
+        var_dump($liveStreams);
+        var_dump($offlineUsers);
+
+
+
+
 
         // Update database with updated info
-        foreach($streamInfoMap as $username => $streamInfo) {
-            echo "Updating database record for $username...\n";
-            $dbId = (int)$twitchChannels[$username];
-            $this->updateDbRow($dbId, $streamInfo);
-        }
+        // foreach($streamInfoMap as $username => $streamInfo) {
+        //     echo "Updating database record for $username...\n";
+        //     $dbId = (int)$twitchChannels[$username];
+        //     $this->updateDbRow($dbId, $streamInfo);
+        // }
     }
 
     public function updateAngelThumpChannels()
@@ -111,10 +153,10 @@ SQL
     private function getTwitchChannels(): array
     {
         $query = $this->pdo->prepare(<<<SQL
-SELECT name, stream_id 
-FROM stream 
-WHERE service = 'twitch'
-SQL
+            SELECT name, channel_id
+            FROM channel 
+            WHERE service = 'twitch'
+        SQL
         );
 
         $query->execute();
@@ -128,11 +170,10 @@ SQL
     function getAngelThumpChannels(): array
     {
         $query = $this->pdo->prepare(<<<SQL
-SELECT name, stream_id 
-FROM stream 
-WHERE service = 'angelthump'
-SQL
-        );
+            SELECT name, stream_id 
+            FROM stream 
+            WHERE service = 'angelthump'
+        SQL);
 
         $query->execute();
         return $query->fetchAll(PDO::FETCH_KEY_PAIR);

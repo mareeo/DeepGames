@@ -15,14 +15,32 @@ class ChannelRepository
 
     }
 
-    public function getAllChannels()
+    /**
+     * @return Channel[]
+     */
+    public function getAllChannels(): array
     {
-        $query = $this->pdo->prepare(<<<SQL
-    SELECT * FROM channel
-SQL
-        );
+        $query = $this->pdo->prepare('SELECT * FROM channel');
 
         $query->execute();
+
+        $results = $query->fetchAll();
+
+        if (is_array($results)) {
+            return $this->map($results);
+        } else {
+            return [];
+        }
+    }
+
+    /**
+     * @return Channel[]
+     */
+    public function getChannelsForService(string $service): array
+    {
+        $query = $this->pdo->prepare('SELECT * FROM channel WHERE service = ?');
+
+        $query->execute([$service]);
 
         $results = $query->fetchAll();
 

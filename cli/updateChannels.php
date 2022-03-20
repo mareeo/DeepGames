@@ -35,9 +35,9 @@ try {
 }
 
 
-try {
-    $service->updateAngelThumpChannels();
-} catch (Throwable $e) {
-    echo "Error updating AngelThump channels: " . $e->getMessage() . "\n";
-    error_log($e);
-}
+// try {
+//     $service->updateAngelThumpChannels();
+// } catch (Throwable $e) {
+//     echo "Error updating AngelThump channels: " . $e->getMessage() . "\n";
+//     error_log($e);
+// }

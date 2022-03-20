@@ -3,8 +3,6 @@
 
 namespace App\Integrations;
 
-use App\DB\Stream;
-use Exception;
 use GuzzleHttp\Client;
 
 use JsonSchema\Validator;
@@ -77,32 +75,37 @@ class AngelThumpApiClient
     }
 
     /**
-      * Get user details.
+      * Get user information.
       *
       * @param string $username
       * @throws RuntimeException
       * @return stdClass|null User object if found, null if no user found
       */
-      public function getUser(string $username): ?stdClass
-      {
-          $response = $this->guzzle->get("users?username=$username");
-  
-          $contents = $response->getBody()->getContents();
-          $body = json_decode($contents);
+    public function getUser(string $username): ?stdClass
+    {
+        $response = $this->guzzle->get("users?username=$username");
 
-          var_dump($body);
+        $contents = $response->getBody()->getContents();
+        $body = json_decode($contents);
 
-          $this->validateResponse($body, self::USER_SCHEMA);
-  
-          if (count($body) > 0) {
-              return $body[0];
-          } else {
-              return null;
-          }
-      }
+        $this->validateResponse($body, self::USER_SCHEMA);
 
-      public function getStreams()
-      {
+        if (count($body) > 0) {
+            return $body[0];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get all stream information.
+     * Useful if info about multiple streams is needed
+     *
+     * @throws RuntimeException
+     * @return array Array of stream objects. See stream schema constant for fields.
+     */
+    public function getStreams(): array
+    {
         $response = $this->guzzle->get("streams");
 
         $contents = $response->getBody()->getContents();
@@ -111,8 +114,14 @@ class AngelThumpApiClient
         $this->validateResponse($body, self::STREAM_SCHEMA);
 
         return $body;
-      }
+    }
 
+    /**
+     * Get information about a single stream.
+     *
+     * @param string $username
+     * @return stdClass|null Stream object (see stream schema constant for fields). Null if not found.
+     */
     public function getStream(string $username): ?stdClass
     {
         $response = $this->guzzle->get("streams?username=$username");
@@ -130,7 +139,7 @@ class AngelThumpApiClient
     }
 
     /**
-     * Valids the data with the given JSON Schema and throws an exception if invalid.
+     * Validates the data with the given JSON Schema and throws an exception if invalid.
      *
      * @param Validator $validator
      * @throws RunTimeException
@@ -144,8 +153,6 @@ class AngelThumpApiClient
         if ($validator->isValid()) {
             return;
         }
-
-        $errors = $validator->getErrors();
   
         $errorMessage = 'Validation error:';
         foreach($validator->getErrors() as $error) {
@@ -154,37 +161,4 @@ class AngelThumpApiClient
 
         throw new RuntimeException($errorMessage);
     }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $username
-     * @return void
-     */
-
-     
-
-    private function makeStreamInfo(stdClass $streamObject): Stream
-    {
-        if ($streamObject->type === "live") {
-            $live = true;
-            $viewers = $streamObject->viewer_count;
-            $thumbnail = $streamObject->thumbnail_url;
-        } else {
-            $live = false;
-            $viewers = 0;
-            $thumbnail = $streamObject->user->profile_logo_url;
-        }
-        return new Stream(
-            $streamObject->user->username,
-            'angelthump',
-            $live,
-            $thumbnail,
-            $streamObject->user->title,
-            $viewers
-        );
-    }
-
-
-
 }

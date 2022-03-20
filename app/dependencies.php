@@ -4,7 +4,7 @@ declare(strict_types=1);
 use App\DB\ChannelRepository;
 use App\DB\StreamRepository;
 use App\Integrations\AngelThumpApiClient;
-use App\Integrations\Twitch\TwitchApi;
+use App\Integrations\TwitchApiClient;
 use App\Services\StreamUpdateService;
 use League\Plates\Engine;
 use Monolog\Handler\StreamHandler;
@@ -51,11 +51,11 @@ return [
         );
     },
 
-    TwitchApi::class => function(ContainerInterface $c) {
+    TwitchApiClient::class => function(ContainerInterface $c) {
         $settings = $c->get('settings');
 
         $cache = $c->get(CacheInterface::class);
-        return new TwitchApi($cache, $settings['twitch.clientID'], $settings['twitch.clientSecret'], $settings['twitch.accessTokenCacheKey']);
+        return new TwitchApiClient($cache, $settings['twitch.clientID'], $settings['twitch.clientSecret'], $settings['twitch.accessTokenCacheKey']);
     },
 
     AngelThumpApiClient::class => autowire(),
