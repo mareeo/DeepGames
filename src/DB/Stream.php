@@ -14,14 +14,14 @@ class Stream
     public int $serviceStreamId;
     public string $title;
     public DateTimeImmutable $startedAt;
-    public DateTimeImmutable $stoppedAt;
+    public ?DateTimeImmutable $stoppedAt;
 
     public function __construct(
         int $channelId,
         int $serviceStreamId,
         string $title,
         DateTimeInterface $startedAt,
-        ?DateTimeInterface $stoppedAt
+        ?DateTimeInterface $stoppedAt = null
     ) {
         $this->id = null;
         $this->channelId = $channelId;
@@ -31,6 +31,8 @@ class Stream
 
         if ($stoppedAt instanceof DateTimeInterface) {
             $this->stoppedAt = DateTimeImmutable::createFromInterface($stoppedAt);
+        } else {
+            $this->stoppedAt = null;
         }
     }
 

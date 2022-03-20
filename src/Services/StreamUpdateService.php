@@ -9,6 +9,7 @@ use App\DB\StreamRepository;
 use App\Integrations\AngelThumpApiClient;
 use App\Integrations\TwitchApiClient;
 use DateTimeImmutable;
+use DateTimeZone;
 use GuzzleHttp\Exception\GuzzleException;
 use PDO;
 use Psr\SimpleCache\InvalidArgumentException;
@@ -50,46 +51,44 @@ class StreamUpdateService
             $twitchUsernames[] = $twitchChannel->name;
         }
 
-        $twitchUsernames[] = 'thonggdelonge';
+        $liveStreamsMap = [];
+        $offlineUsersMap = [];
 
-        $liveStreams = [];
-        $offlineUsers = [];
+        // Get current streams
+        $streams = $this->twitch->getStreams($twitchUsernames);
 
-        // Twitch API calls allow a max of 100 streams per request
-        foreach(array_chunk($twitchUsernames, 100) as $channelsChunk) {
+        $liveUsernames = [];
 
-            // Get current streams
-            $streams = $this->twitch->getStreams($channelsChunk);
-
-            $liveUsernames = [];
-
-            foreach ($streams as $stream) {
-                $liveStreams[$stream->user_login] = $stream;
-                $liveUsernames[] = $stream->user_login;
-            }
-
-            // Get information for live and not live users$usernames and merge the results together
-            $offlineUsernames = array_values(array_diff($channelsChunk, $liveUsernames));
-            $users = $this->twitch->getUsers($offlineUsernames);
-
-            foreach ($users as $user) {
-                $offlineUsers[$user->login] = $user;
-            }
+        foreach ($streams as $stream) {
+            $liveStreamsMap[$stream->user_login] = $stream;
+            $liveUsernames[] = $stream->user_login;
         }
 
-        var_dump($liveStreams);
-        var_dump($offlineUsers);
+        // For not live channels get the user information
+        $offlineUsernames = array_values(array_diff($twitchUsernames, $liveUsernames));
+        $users = $this->twitch->getUsers($offlineUsernames);
 
+        foreach ($users as $user) {
+            $offlineUsersMap[$user->login] = $user;
+        }
 
+        $currentStreams = $this->streamRepository->getCurrentStreams();
 
+        /** @var Stream[] */
+        $currentStreamMap = [];
 
+        // Create map of channel ID to stream
+        foreach ($currentStreams as $currentStream) {
+            $currentStreamMap[$currentStream->channelId] = $currentStream;
+        }
 
         // Update database with updated info
         foreach($twitchChannels as $twitchChannel) {
             echo "Updating database record for $twitchChannel->name...\n";
 
-            if (array_key_exists($twitchChannel->name, $liveStreams)) {
-                $stream = $liveStreams[$twitchChannel->name];
+            // If the channel is live on twitch
+            if (array_key_exists($twitchChannel->name, $liveStreamsMap)) {
+                $stream = $liveStreamsMap[$twitchChannel->name];
                 $thumbnail = str_replace('{width}x{height}', '320x180', $stream->thumbnail_url);
                 $twitchChannel->lastUpdated = new DateTimeImmutable();
                 $twitchChannel->title = $stream->title;
@@ -97,19 +96,40 @@ class StreamUpdateService
                 $twitchChannel->image = $thumbnail;
                 $twitchChannel->live = true;
                 $twitchChannel->viewers = $stream->viewer_count;
-            } elseif (array_key_exists($twitchChannel->name, $offlineUsers)) {
-                $user = $offlineUsers[$twitchChannel->name];
+
+                // If stream doesn't exist make it
+                if (!array_key_exists($twitchChannel->getId(), $currentStreamMap)) {
+                    $started = new DateTimeImmutable($stream->started_at);
+                    $started = $started->setTimezone(new DateTimeZone(date_default_timezone_get()));
+                    $currentStream = new Stream($twitchChannel->getId(), $stream->id, $stream->title, $started);
+                    $twitchChannel->lastStream = $started;
+                    $this->streamRepository->save($currentStream);
+                }
+
+                $this->channelRepository->saveChannel($twitchChannel);
+                
+
+            // If the channel is not live on twitch and there was user info
+            } elseif (array_key_exists($twitchChannel->name, $offlineUsersMap)) {
+                $user = $offlineUsersMap[$twitchChannel->name];
                 $twitchChannel->lastUpdated = new DateTimeImmutable();
                 $twitchChannel->title = $user->display_name;
                 $twitchChannel->subtitle = '';
                 $twitchChannel->image = $user->offline_image_url !== '' ? $user->offline_image_url : $user->profile_image_url;
                 $twitchChannel->live = false;
                 $twitchChannel->viewers = 0;
-            } else {
-                continue;
-            }
 
-            $this->channelRepository->saveChannel($twitchChannel);
+                
+
+                // If current stream exists, make it is stopped
+                if (array_key_exists($twitchChannel->getId(), $currentStreamMap)) {
+                    $currentStream = $currentStreamMap[$twitchChannel->getId()];
+                    $currentStream->stoppedAt = new DateTimeImmutable();
+                    $this->streamRepository->save($currentStream);
+                }
+
+                $this->channelRepository->saveChannel($twitchChannel);
+            }
         }
     }
 

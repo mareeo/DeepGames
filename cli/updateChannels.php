@@ -19,12 +19,14 @@ $containerBuilder->addDefinitions(__DIR__ . '/../app/dependencies.php');
 // Build PHP-DI Container instance
 try {
     $container = $containerBuilder->build();
-    $service = $container->get(StreamUpdateService::class);
 } catch (Throwable $e) {
     echo "Container error: " . get_class($e) . ' - ' . $e->getMessage() . "\n";
     error_log($e);
     die(1);
 }
+
+/** @var StreamUpdateService */
+$service = $container->get(StreamUpdateService::class);
 
 
 try {

@@ -240,20 +240,30 @@ class TwitchApiClient
             return [];
         }
 
-        // Do the API request
-        $response = $this->guzzle->get('users', [
-            'http_errors' => false,
-            'query' => ['login' => $usernames ]
-        ]);
+        $usernames = array_values(array_unique($usernames));
 
-        $this->checkErrorResponse($response);
+        $output = [];
 
-        // Validate the result
-        $body = json_decode($response->getBody()->getContents());
+        // Twitch API calls allow a max of 100 streams per request
+        foreach(array_chunk($usernames, 100) as $usernamesChunk) {
 
-        $this->validateResponse($body, self::USER_SCHEMA);
+            // Do the API request
+            $response = $this->guzzle->get('users', [
+                'http_errors' => false,
+                'query' => ['login' => $usernamesChunk]
+            ]);
 
-        return $body->data;
+            $this->checkErrorResponse($response);
+
+            // Validate the result
+            $body = json_decode($response->getBody()->getContents());
+
+            $this->validateResponse($body, self::USER_SCHEMA);
+
+            $output = array_merge($output, $body->data);
+        }
+
+        return $output;
     }
 
     /**
@@ -270,19 +280,30 @@ class TwitchApiClient
             return [];
         }
 
-        // Do the API request
-        $response = $this->guzzle->request('GET', 'streams', [
-            'http_errors' => false,
-            'query' => ['user_login' => $usernames ]
-        ]);
+        $usernames = array_values(array_unique($usernames));
 
-        $this->checkErrorResponse($response);
+        $output = [];
 
-        $body = json_decode($response->getBody()->getContents());
+        // Twitch API calls allow a max of 100 streams per request
+        foreach(array_chunk($usernames, 100) as $usernamesChunk) {
+            // Do the API request
+            $response = $this->guzzle->request('GET', 'streams', [
+                'http_errors' => false,
+                'query' => ['user_login' => $usernamesChunk]
+            ]);
 
-        $this->validateResponse($body, self::STREAM_SCHEMA);
+            $this->checkErrorResponse($response);
 
-        return $body->data;
+            $body = json_decode($response->getBody()->getContents());
+
+            $this->validateResponse($body, self::STREAM_SCHEMA);
+
+            $output = array_merge($output, $body->data);
+        }
+
+        return $output;
+
+        
     }
 
     /**
@@ -290,7 +311,7 @@ class TwitchApiClient
      * 
      * @param array $gameIds
      * @return array A map where values are Twitch game IDs and values keyed arrays: ['box_art_url', 'id', 'name']
-     * @throws Exception
+     * @throws RuntimeException
      */
     public function getGames(array $gameIds): array
     {
@@ -298,22 +319,28 @@ class TwitchApiClient
             return [];
         }
 
-        // Do the API request
-        $response = $this->guzzle->get('games', [
-            'http_errors' => false,
-            'query' => ['id' => $gameIds ]
-        ]);
+        $gameIds = array_values(array_unique($gameIds));
 
-        $this->checkErrorResponse($response);
-
-        // Validate the response
-        $body = json_decode($response->getBody()->getContents());
-        $this->validateResponse($body, self::GAME_SCHEMA);
-
-        // Build game information map
         $output = [];
-        foreach ($body->data as $game) {
-            $output[$game->id] = $game;
+
+        // Twitch API calls allow a max of 100 streams per request
+        foreach(array_chunk($gameIds, 100) as $gameIdsChunk) {
+            // Do the API request
+            $response = $this->guzzle->get('games', [
+                'http_errors' => false,
+                'query' => ['id' => $gameIdsChunk]
+            ]);
+
+            $this->checkErrorResponse($response);
+
+            // Validate the response
+            $body = json_decode($response->getBody()->getContents());
+            $this->validateResponse($body, self::GAME_SCHEMA);
+
+            // Add to game information map
+            foreach ($body->data as $game) {
+                $output[$game->id] = $game;
+            }
         }
 
         return $output;
