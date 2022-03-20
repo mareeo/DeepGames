@@ -319,42 +319,6 @@ class TwitchApiClient
         return $output;
     }
 
-    /**
-     * Get channel information for Twitch users$usernames.
-     * First, all live streams are fetched. Then for offline streams the channel information (technically user
-     * information) is fetched. Finally, game information is fetched.
-     * @param array $usernames
-     * @return Stream[]
-     * @throws Exception
-     * @throws GuzzleException
-     * @throws InvalidArgumentException
-     */
-    public function getStreamInfo(array $usernames): array
-    {
-        /** @var Stream[] $allStreams */
-        $allStreams = [];
-
-        // Twitch API calls allow a max of 100 streams per request
-        foreach(array_chunk($usernames, 100) as $channelsChunk) {
-
-            // Get information for live and not live users$usernames and merge the results together
-            $liveStreams = $this->getLiveStreams($usernames);
-            $offlineUsers = array_values(array_diff($channelsChunk, array_keys($liveStreams)));
-            $offlineStreams = $this->getUsersInfo($offlineUsers);
-
-            /** @var Stream[] $chunkAllStreams */
-            $chunkAllStreams = array_merge($liveStreams, $offlineStreams);
-
-            // Fetch and add game information to the data
-            $this->addGameInformation($chunkAllStreams);
-
-            // All this chunk to the full list
-            $allStreams = array_merge($allStreams, $chunkAllStreams);
-        }
-
-        return $allStreams;
-    }
-
     private function setAccessToken(string $accessToken): void
     {
         $this->accessToken = $accessToken;
@@ -391,88 +355,6 @@ class TwitchApiClient
 
         $this->setAccessToken($body->access_token);
         $this->cache->set($this->accessTokenCacheKey, $body->access_token,  $body->expires_in);
-    }
-
-    
-
-    /**
-     * Make a StreamInfo object from the live stream Twitch API response.
-     * @param stdClass $streamObject
-     * @return Stream
-     */
-    private function makeFromStream(stdClass $streamObject): Stream
-    {
-        $thumbnail = str_replace('{width}x{height}', '320x180', $streamObject->thumbnail_url);
-        $streamInfo = new Stream(
-            $streamObject->user_name,
-            'twitch',
-            true,
-            $thumbnail,
-            $streamObject->title,
-            $streamObject->viewer_count
-        );
-
-        $streamInfo->twitchGameId = $streamObject->game_id;
-        return $streamInfo;
-    }
-
-    /**
-     * Get user information from the Twitch API.
-
-     * @param array $usernames
-     * @return Stream[] A map where keys are usernames and values are StreamInfo objects.
-     * @throws Exception
-     * @throws InvalidArgumentException
-     */
-    private function getUsersInfo(array $usernames): array
-    {
-        if (count($usernames) == 0) {
-            return [];
-        }
-
-        // Do the API request
-        $response = $this->guzzle->get('users', [
-            'http_errors' => false,
-            'query' => ['login' => $usernames ]
-        ]);
-
-        $this->checkErrorResponse($response);
-
-        // Validate the result
-        $body = json_decode($response->getBody()->getContents());
-        $result = $this->validator->schemaValidation($body, Schema::fromJsonString(self::USER_SCHEMA));
-
-        if (!$result->isValid()) {
-            $error = $result->getFirstError();
-            $message = "Validation '" . $error->keyword() . "' error on " . implode('.', $error->dataPointer()) . ": ";
-            $message .= json_encode($error->keywordArgs());
-            throw new Exception("Invalid Twitch API response: $message");
-        }
-
-        // Build StreamInfo map
-        $infoMap = [];
-        foreach ($body->data as $streamObject) {
-            $infoMap[strtolower($streamObject->login)] = $this->makeFromUser($streamObject);
-        }
-
-        return $infoMap;
-    }
-
-    /**
-     * Make a StreamInfo object from the user Twitch API response.
-     * @param stdClass $userObject
-     * @return Stream
-     */
-    private function makeFromUser(stdClass $userObject): Stream
-    {
-        return new Stream(
-            $userObject->login,
-            'twitch',
-            false,
-            $userObject->offline_image_url !== '' ?  $userObject->offline_image_url : $userObject->profile_image_url,
-            $userObject->display_name,
-            0
-        );
     }
 
     /**

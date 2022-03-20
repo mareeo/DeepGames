@@ -8,6 +8,7 @@ use App\DB\Stream;
 use App\DB\StreamRepository;
 use App\Integrations\AngelThumpApiClient;
 use App\Integrations\TwitchApiClient;
+use DateTimeImmutable;
 use GuzzleHttp\Exception\GuzzleException;
 use PDO;
 use Psr\SimpleCache\InvalidArgumentException;
@@ -84,11 +85,32 @@ class StreamUpdateService
 
 
         // Update database with updated info
-        // foreach($streamInfoMap as $username => $streamInfo) {
-        //     echo "Updating database record for $username...\n";
-        //     $dbId = (int)$twitchChannels[$username];
-        //     $this->updateDbRow($dbId, $streamInfo);
-        // }
+        foreach($twitchChannels as $twitchChannel) {
+            echo "Updating database record for $twitchChannel->name...\n";
+
+            if (array_key_exists($twitchChannel->name, $liveStreams)) {
+                $stream = $liveStreams[$twitchChannel->name];
+                $thumbnail = str_replace('{width}x{height}', '320x180', $stream->thumbnail_url);
+                $twitchChannel->lastUpdated = new DateTimeImmutable();
+                $twitchChannel->title = $stream->title;
+                $twitchChannel->subtitle = $stream->game_name;
+                $twitchChannel->image = $thumbnail;
+                $twitchChannel->live = true;
+                $twitchChannel->viewers = $stream->viewer_count;
+            } elseif (array_key_exists($twitchChannel->name, $offlineUsers)) {
+                $user = $offlineUsers[$twitchChannel->name];
+                $twitchChannel->lastUpdated = new DateTimeImmutable();
+                $twitchChannel->title = $user->display_name;
+                $twitchChannel->subtitle = '';
+                $twitchChannel->image = $user->offline_image_url !== '' ? $user->offline_image_url : $user->profile_image_url;
+                $twitchChannel->live = false;
+                $twitchChannel->viewers = 0;
+            } else {
+                continue;
+            }
+
+            $this->channelRepository->saveChannel($twitchChannel);
+        }
     }
 
     public function updateAngelThumpChannels()

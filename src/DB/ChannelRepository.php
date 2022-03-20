@@ -51,6 +51,71 @@ class ChannelRepository
         }
     }
 
+    public function saveChannel(Channel $channel): void
+    {
+        if ($channel->getId() === null) {
+            $this->createChannel($channel);
+        } else {
+            $this->updateChannel($channel);
+        }
+    }
+
+    private function updateChannel(Channel $channel)
+    {
+        $query = $this->pdo->prepare(<<<SQL
+            UPDATE channel
+            SET
+                last_updated = :lastUpdated,
+                title = :title,
+                subtitle = :subtitle,
+                image = :image,
+                live = :live,
+                viewers = :viewers,
+                last_stream = :lastStream
+            WHERE
+                channel_id = :id
+        SQL);
+
+        $params = [
+            ':id' => $channel->getId(),
+            ':lastUpdated' => $channel->lastUpdated?->format('Y-m-d H:i:s'),
+            ':title' => $channel->title,
+            ':subtitle'=> $channel->subtitle,
+            ':image' => $channel->image,
+            ':live' => $channel->live,
+            ':viewers' => $channel->viewers,
+            ':lastStream' => $channel->lastStream?->format('Y-m-d H:i:s')
+        ];
+
+        $query->execute($params);
+    }
+
+    private function createChannel(Channel $channel)
+    {
+        $query = $this->pdo->prepare(<<<SQL
+            INSERT INTO channel (name, service, last_updated, title, subtitle, image, live, viewers, last_stream)
+            VALUES (:name, :service, :lastUpdated, :title, :subtitle, :image, :live, :viewers, :lastStream)
+        SQL);
+
+        $params = [
+            ':name' => $channel->name,
+            ':service' => $channel->service,
+            ':lastUpdated' => $channel->lastUpdated?->format('Y-m-d H:i:s'),
+            ':title' => $channel->title,
+            ':subtitle'=> $channel->subtitle,
+            ':image' => $channel->image,
+            ':live' => $channel->live,
+            ':viewers' => $channel->viewers,
+            ':lastStream' => $channel->lastStream?->format('Y-m-d H:i:s')
+        ];
+
+        $query->execute($params);
+
+        $id = (int)$this->pdo->lastInsertId();
+
+        $channel->setId($id);
+    }
+
     /**
      * @param array $results
      * @return Channel[]
