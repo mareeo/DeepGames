@@ -10,10 +10,10 @@ use App\Integrations\AngelThumpApiClient;
 use App\Integrations\TwitchApiClient;
 use DateTimeImmutable;
 use DateTimeZone;
+use FFI\CData;
 use GuzzleHttp\Exception\GuzzleException;
 use PDO;
 use Psr\SimpleCache\InvalidArgumentException;
-use Throwable;
 
 class StreamUpdateService
 {
@@ -34,7 +34,8 @@ class StreamUpdateService
     }
 
     /**
-     * Get all twitch channels from the database, use the Twitch API to get updated info, the update the database.
+     * Get all twitch channels from the database, use the Twitch API to get updated info, then update the database.
+     * 
      * @throws GuzzleException
      * @throws InvalidArgumentException
      */
@@ -119,8 +120,6 @@ class StreamUpdateService
                 $twitchChannel->live = false;
                 $twitchChannel->viewers = 0;
 
-                
-
                 // If current stream exists, make it is stopped
                 if (array_key_exists($twitchChannel->getId(), $currentStreamMap)) {
                     $currentStream = $currentStreamMap[$twitchChannel->getId()];
@@ -133,92 +132,104 @@ class StreamUpdateService
         }
     }
 
-    public function updateAngelThumpChannels()
+    /**
+     * Get all twitch channels from the database, use the AngelThump API to get updated info, then update the database
+     *
+     * @throws GuzzleException
+     */
+    public function updateAngelThumpChannels(): void
     {
         echo "Updating Angel Thump Channels...\n";
 
-        $channels = $this->getAngelThumpChannels();
+        // Get all twitch channels from the database
+        $angelThumpChannels = $this->channelRepository->getChannelsForService('angelthump');
 
-        foreach ($channels as $username => $id) {
-            echo "Updating $username\n";
+        $usernames = [];
 
-            try {
-                $streamInfo = $this->angelThump->getStreamInfo($username);
-                if ($streamInfo === null) {
-                    $streamInfo = $this->angelThump->getUserInfo($username);
+        foreach ($angelThumpChannels as $angelThumpChannel) {
+            $usernames[] = $angelThumpChannel->name;
+        }
+
+        $liveStreamsMap = [];
+        $offlineUsersMap = [];
+
+        // Get current streams
+        $streams = $this->angelThump->getStreams();
+
+        $liveUsernames = [];
+
+        foreach ($streams as $stream) {
+            $liveStreamsMap[$stream->user->username] = $stream;
+            $liveUsernames[] = $stream->user->username;
+        }
+
+        // For not live channels get the user information
+        $offlineUsernames = array_values(array_diff($usernames, $liveUsernames));
+
+        foreach($offlineUsernames as $offlineUsername) {
+            $user = $this->angelThump->getUser($offlineUsername);
+
+            if ($user === null) {
+                continue;
+            }
+
+            $offlineUsersMap[$user->username] = $user;
+        }
+
+        $currentStreams = $this->streamRepository->getCurrentStreams();
+
+        /** @var Stream[] */
+        $currentStreamMap = [];
+
+        // Create map of channel ID to stream
+        foreach ($currentStreams as $currentStream) {
+            $currentStreamMap[$currentStream->channelId] = $currentStream;
+        }
+
+        // Update database with updated info
+        foreach($angelThumpChannels as $angelThumpChannel) {
+            echo "Updating database record for $angelThumpChannel->name...\n";
+
+            // If the channel is live on AngelThump
+            if (array_key_exists($angelThumpChannel->name, $liveStreamsMap)) {
+                $stream = $liveStreamsMap[$angelThumpChannel->name];
+                $angelThumpChannel->lastUpdated = new DateTimeImmutable();
+                $angelThumpChannel->title = $stream->user->title;
+                $angelThumpChannel->subtitle = '';
+                $angelThumpChannel->image = $stream->thumbnail_url;
+                $angelThumpChannel->live = true;
+                $angelThumpChannel->viewers = $stream->viewer_count;
+
+                // If stream doesn't exist make it
+                if (!array_key_exists($angelThumpChannel->getId(), $currentStreamMap)) {
+                    $started = new DateTimeImmutable($stream->createdAt);
+                    $started = $started->setTimezone(new DateTimeZone(date_default_timezone_get()));
+                    $currentStream = new Stream($angelThumpChannel->getId(), $stream->id, $stream->user->title, $started);
+                    $angelThumpChannel->lastStream = $started;
+                    $this->streamRepository->save($currentStream);
                 }
-                if ($streamInfo instanceof Stream) {
-                    $this->updateDbRow($id, $streamInfo);
+
+                $this->channelRepository->saveChannel($angelThumpChannel);
+                
+
+            // If the channel is not live on AngelTHump and there was user info
+            } elseif (array_key_exists($angelThumpChannel->name, $offlineUsersMap)) {
+                $user = $offlineUsersMap[$angelThumpChannel->name];
+                $angelThumpChannel->lastUpdated = new DateTimeImmutable();
+                $angelThumpChannel->title = $user->display_name;
+                $angelThumpChannel->subtitle = '';
+                $angelThumpChannel->image = $user->offline_banner_url !== '' ? $user->offline_banner_url : $user->profile_logo_url;
+                $angelThumpChannel->live = false;
+                $angelThumpChannel->viewers = 0;
+
+                // If current stream exists, make it is stopped
+                if (array_key_exists($angelThumpChannel->getId(), $currentStreamMap)) {
+                    $currentStream = $currentStreamMap[$angelThumpChannel->getId()];
+                    $currentStream->stoppedAt = new DateTimeImmutable();
+                    $this->streamRepository->save($currentStream);
                 }
-            } catch (Throwable $e) {
-                echo "Error updating AngelThump channel $username: " . $e->getMessage() . "\n";
-                error_log($e);
+                $this->channelRepository->saveChannel($angelThumpChannel);
             }
         }
     }
-
-    /**
-     * Update a database row with newer stream information.
-     * @param int $id
-     * @param Stream $stream
-     */
-    private function updateDbRow(int $id, Stream $stream): void
-    {
-        $query = $this->pdo->prepare(<<<SQL
-UPDATE stream
-SET
-  last_updated = CURRENT_TIMESTAMP,
-  title = :title,
-  game = :game,
-  thumbnail = :thumbnail,
-  live = :live,
-  viewers = :viewers
-WHERE
-  stream_id = :id
-SQL
-        );
-
-        $query->execute([
-            ':id' => $id,
-            ':title' => $stream->title,
-            ':game' => $stream->game,
-            ':thumbnail' => $stream->thumbnail,
-            ':live' => (int)$stream->live,
-            ':viewers' => $stream->viewers
-        ]);
-    }
-
-    /**
-     * Get all Twitch channels from the database
-     * @return array A map where key is username and value is database ID.
-     */
-    private function getTwitchChannels(): array
-    {
-        $query = $this->pdo->prepare(<<<SQL
-            SELECT name, channel_id
-            FROM channel 
-            WHERE service = 'twitch'
-        SQL
-        );
-
-        $query->execute();
-        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
-    }
-
-    /**
-     * Get all AngelThump channels from the database
-     * @return array A map where key is username and value is database ID.
-     */
-    function getAngelThumpChannels(): array
-    {
-        $query = $this->pdo->prepare(<<<SQL
-            SELECT name, stream_id 
-            FROM stream 
-            WHERE service = 'angelthump'
-        SQL);
-
-        $query->execute();
-        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
-    }
-
 }

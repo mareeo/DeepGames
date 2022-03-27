@@ -59,53 +59,30 @@ class TwitchApiClient
                     "items": {
                         "type": "object",
                         "properties": {
-                            "community_ids": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
+                            "id": {
+                                "type": "string"
                             },
-                            "game_id": {
+                            "user_login": {
                                 "type": "string"
                             },
                             "game_name": {
                                 "type": "string"
                             },
-                            "id": {
-                                "type": "string"
-                            },
-                            "language": {
-                                "type": "string"
-                            },
-                            "started_at": {
-                                "type": "string"
-                            },
-                            "tag_ids": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
-                            "thumbnail_url": {
-                                "type": "string"
-                            },
                             "title": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "type": "string"
-                            },
-                            "user_id": {
-                                "type": "string"
-                            },
-                            "user_name": {
                                 "type": "string"
                             },
                             "viewer_count": {
                                 "type": "integer"
+                            },
+                            "started_at": {
+                                "type": "string"
+                            },
+                            "thumbnail_url": {
+                                "type": "string"
                             }
+                            
                         },
-                        "required": ["game_id", "id", "language", "started_at", "tag_ids", "thumbnail_url", "title", "user_id", "user_name", "viewer_count"]
+                        "required": ["id", "user_login", "game_name", "title", "viewer_count", "started_at", "thumbnail_url"]
                     }
                 }
             },
@@ -123,19 +100,7 @@ class TwitchApiClient
                     "items": {
                         "type": "object",
                         "properties": {
-                            "broadcaster_type": {
-                                "type": "string"
-                            },
-                            "description": {
-                                "type": "string"
-                            },
                             "display_name": {
-                                "type": "string"
-                            },
-                            "email": {
-                                "type": "string"
-                            },
-                            "id": {
                                 "type": "string"
                             },
                             "login": {
@@ -146,50 +111,16 @@ class TwitchApiClient
                             },
                             "profile_image_url": {
                                 "type": "string"
-                            },
-                            "type": {
-                                "type": "string"
-                            },
-                            "view_count": {
-                                "type": "integer"
                             }
                         },
-                        "required": ["broadcaster_type", "description", "id", "login", "offline_image_url", "profile_image_url", "type", "view_count"]
+                        "required": ["display_name", "login", "offline_image_url", "profile_image_url"]
                     }
                 }
             },
             "required": ["data"]
         }
         JSON;
-
-    private const GAME_SCHEMA = 
-        <<<JSON
-        {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "id": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "box_art_url": {
-                                "type": "string"
-                            }
-                        },
-                        "required": ["id", "name", "box_art_url"]
-                    }
-                }
-            },
-            "required": ["data"]
-        }
-        JSON;
-    
+        
     private Client $guzzle;
     private CacheInterface $cache;
     private string $accessTokenCacheKey;
@@ -304,46 +235,6 @@ class TwitchApiClient
         return $output;
 
         
-    }
-
-    /**
-     * Get game information from the Twitch API.
-     * 
-     * @param array $gameIds
-     * @return array A map where values are Twitch game IDs and values keyed arrays: ['box_art_url', 'id', 'name']
-     * @throws RuntimeException
-     */
-    public function getGames(array $gameIds): array
-    {
-        if (count($gameIds) == 0) {
-            return [];
-        }
-
-        $gameIds = array_values(array_unique($gameIds));
-
-        $output = [];
-
-        // Twitch API calls allow a max of 100 streams per request
-        foreach(array_chunk($gameIds, 100) as $gameIdsChunk) {
-            // Do the API request
-            $response = $this->guzzle->get('games', [
-                'http_errors' => false,
-                'query' => ['id' => $gameIdsChunk]
-            ]);
-
-            $this->checkErrorResponse($response);
-
-            // Validate the response
-            $body = json_decode($response->getBody()->getContents());
-            $this->validateResponse($body, self::GAME_SCHEMA);
-
-            // Add to game information map
-            foreach ($body->data as $game) {
-                $output[$game->id] = $game;
-            }
-        }
-
-        return $output;
     }
 
     private function setAccessToken(string $accessToken): void

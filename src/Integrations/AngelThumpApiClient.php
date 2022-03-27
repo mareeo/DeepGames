@@ -19,11 +19,17 @@ class AngelThumpApiClient
             "items": {
                 "type": "object",
                 "properties": {
+                    "id": {
+                        "type": "string"
+                    },
                     "thumbnail_url": {
                         "type": "string"
                     },
                     "viewer_count": {
                         "type": "integer"
+                    },
+                    "createdAt": {
+                        "type": "string"
                     },
                     "user": {
                         "type": "object",
@@ -31,14 +37,23 @@ class AngelThumpApiClient
                             "username": {
                                 "type": "string"
                             },
+                            "display_name": {
+                                "type": "string"
+                            },
                             "title": {
+                                "type": "string"
+                            },
+                            "offline_banner_url": {
+                                "type": "string"
+                            },
+                            "profile_logo_url": {
                                 "type": "string"
                             }
                         },
-                        "required": ["username", "title"]
+                        "required": ["username", "display_name", "title", "offline_banner_url", "profile_logo_url"]
                     }
                 },
-                "required": ["thumbnail_url", "viewer_count", "user"]
+                "required": ["id", "thumbnail_url", "viewer_count", "createdAt", "user"]
             }
         }
         JSON;
@@ -50,17 +65,23 @@ class AngelThumpApiClient
             "items": {
                 "type": "object",
                 "properties": {
-                    "usernameee": {
+                    "username": {
+                        "type": "string"
+                    },
+                    "display_name": {
                         "type": "string"
                     },
                     "title": {
+                        "type": "string"
+                    },
+                    "offline_banner_url": {
                         "type": "string"
                     },
                     "profile_logo_url": {
                         "type": "string"
                     }
                 },
-                "required": ["username", "title", "profile_logo_url"]
+                "required": ["username", "display_name", "title", "offline_banner_url", "profile_logo_url"]
             }
         }
         JSON;
