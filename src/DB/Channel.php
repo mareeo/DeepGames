@@ -6,8 +6,9 @@ namespace App\DB;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use JsonSerializable;
 
-class Channel
+class Channel implements JsonSerializable
 {
     private ?int $id;
     public string $name;
@@ -66,5 +67,17 @@ class Channel
         }
     }
 
-
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'service' => $this->service,
+            'title' => $this->title,
+            'subtitle' => $this->subtitle,
+            'image' => $this->image,
+            'live' => $this->live,
+            'viewers' => $this->viewers
+        ];
+    }
 }

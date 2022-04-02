@@ -16,7 +16,7 @@ use League\Plates\Extension\RenderContext\RenderContext;
     <link rel="shortcut icon" href="favicon.ico" />
 
     <script src="/js/stuff.js"></script>
-    <script src="/js/handlebars-v4.1.2.js"></script>
+    <script src="/js/handlebars.runtime.min.js"></script>
     <script src="/js/templates.js"></script>
 
     <link rel="stylesheet" type="text/css" href="css/font-awesome-4.1.0/css/font-awesome.min.css" />

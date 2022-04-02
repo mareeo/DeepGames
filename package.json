@@ -1,0 +1,25 @@
+{
+  "name": "deepgamers.com",
+  "version": "1.0.0",
+  "description": "Frontend for deepgamers.com",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "templates": "handlebars frontend/templates -f public/js/templates.js -m"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mareeo/DeepGames.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mareeo/DeepGames/issues"
+  },
+  "homepage": "https://github.com/mareeo/DeepGames#readme",
+  "devDependencies": {
+    "handlebars": "^4.7.7"
+  }
+}

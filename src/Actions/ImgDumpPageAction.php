@@ -4,6 +4,7 @@
 namespace App\Actions;
 
 use App\ImgDump;
+use App\Services\ImgDumpService;
 use League\Plates\Engine;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
@@ -13,10 +14,10 @@ class ImgDumpPageAction
     /** @var Engine */
     private $plates;
 
-    /** @var ImgDump */
+    /** @var ImgDumpService */
     private $imgDump;
 
-    public function __construct(Engine $engine, ImgDump $imgDump)
+    public function __construct(Engine $engine, ImgDumpService $imgDump)
     {
         $this->plates = $engine;
         $this->imgDump = $imgDump;

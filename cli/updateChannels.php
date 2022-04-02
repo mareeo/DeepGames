@@ -28,7 +28,6 @@ try {
 /** @var StreamUpdateService */
 $service = $container->get(StreamUpdateService::class);
 
-
 try {
     $service->updateTwitchChannels();
 } catch (Throwable | InvalidArgumentException $e) {

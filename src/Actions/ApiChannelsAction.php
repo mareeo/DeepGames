@@ -3,6 +3,8 @@
 
 namespace App\Actions;
 
+use App\DB\Channel;
+use App\DB\ChannelRepository;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
@@ -12,9 +14,12 @@ class ApiChannelsAction
     /** @var PDO */
     private $dbh;
 
-    public function __construct(PDO $dbh)
+    private ChannelRepository $channelRepo;
+
+    public function __construct(PDO $dbh, ChannelRepository $channelRepo)
     {
         $this->dbh = $dbh;
+        $this->channelRepo = $channelRepo;
     }
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
@@ -26,14 +31,7 @@ class ApiChannelsAction
 
     private function getChannels(): array
     {
-        $query = $this->dbh->prepare(<<<SQL
-    SELECT * FROM stream
-SQL
-        );
-
-        $query->execute();
-
-        $results = $query->fetchAll(PDO::FETCH_ASSOC);
+        $results = $this->channelRepo->getAllChannels();
 
         $output = [
             "live" => [],
@@ -41,7 +39,7 @@ SQL
         ];
 
         foreach($results as $result) {
-            if($result['live']) {
+            if($result->live) {
                 $output['live'][] = $result;
             } else {
                 $output['notLive'][] = $result;
@@ -50,11 +48,11 @@ SQL
 
 
         // Sort the live channels by viewer count
-        usort($output['live'], function ($a, $b) {
-            if($a['viewers'] == $b['viewers'])
+        usort($output['live'], function (Channel $a, Channel $b) {
+            if($a->viewersviewers == $b->viewers)
                 return 0;
 
-            if($a['viewers'] < $b['viewers'])
+            if($a->viewers < $b->viewers)
                 return 1;
             return -1;
         });

@@ -16,8 +16,6 @@ return [
 
         // Database settings
         'db.host' => 'localhost',
-        'db.user' => 'root',
-        'db.pass' => '',
         'db.dbname' => 'deepgamers',
 
         'twitch.clientID' => '',

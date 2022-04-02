@@ -1,9 +1,9 @@
 <div class="one-half">
     <div class="selector" id="{{service}}-{{name}}">
-        <div class="thumbnail"><img src="{{thumbnail}}" /></div>
+        <div class="thumbnail"><img src="{{image}}" /></div>
         <div class="info">
-            <span class="name">{{name}}</span>{{#if game}} playing <span class="game">{{game}}</span>{{/if}}<br>
-            <span class="title">{{title}}</span>
+            <span class="name">{{name}}</span><br>
+            <span class="title">{{title}} {{#if subtitle}} - <span class="game">{{subtitle}}</span>{{/if}}</span>
         </div>
         <div class="viewers">
             {{viewers}} viewers

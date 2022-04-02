@@ -2,9 +2,9 @@
 `composer install`
 
 ### Compiling Front End Templates
-`npm install -g handlebars`
+`npm install`
 
-`handlebars frontend/templates -f public/js/templates.js -m`
+`npm run templates`
 
 ### Cron Job
-`php updateChannels.php`
+`php cli/updateChannels.php`
