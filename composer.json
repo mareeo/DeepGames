@@ -5,7 +5,6 @@
     "require": {
         "php": "^8.0",
         "ext-gd": "*",
-        "ext-json": "*",
         "ext-pdo": "*",
         "guzzlehttp/guzzle": "^7.0",
         "justinrainbow/json-schema": "^5.2",
@@ -15,8 +14,9 @@
         "nyholm/psr7-server": "^1.0.2",
         "php-di/php-di": "^6.0",
         "psr/simple-cache": "^1.0",
+        "ramsey/uuid": "^4.3",
         "slim/slim": "^4.7",
-        "symfony/cache": "^5.0"
+        "symfony/cache": "^6.0"
     },
     "authors": [
         {

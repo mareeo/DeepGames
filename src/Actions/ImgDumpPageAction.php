@@ -25,7 +25,14 @@ class ImgDumpPageAction
 
     public function __invoke(ServerRequest $request, Response $response, $args): Response
     {
-        $body = $this->plates->render('imgdump', ['imgDump' => $this->imgDump]);
+        $images = $this->imgDump->getImages();
+        $pageSelectHtml = $this->imgDump->displayPageSelect($images);
+
+        $body = $this->plates->render('imgdump', [
+            'images' => $images,
+            'uploaderUuid' => null,
+            'pageSelectHtml' => $pageSelectHtml
+        ]);
         $response->getBody()->write($body);
         return $response;
     }

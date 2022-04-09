@@ -10,7 +10,6 @@ use App\Integrations\AngelThumpApiClient;
 use App\Integrations\TwitchApiClient;
 use DateTimeImmutable;
 use DateTimeZone;
-use FFI\CData;
 use GuzzleHttp\Exception\GuzzleException;
 use PDO;
 use Psr\SimpleCache\InvalidArgumentException;
@@ -91,7 +90,7 @@ class StreamUpdateService
             if (array_key_exists($twitchChannel->name, $liveStreamsMap)) {
                 $stream = $liveStreamsMap[$twitchChannel->name];
                 $thumbnail = str_replace('{width}x{height}', '320x180', $stream->thumbnail_url);
-                $twitchChannel->lastUpdated = new DateTimeImmutable();
+                $twitchChannel->lastUpdated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                 $twitchChannel->title = $stream->title;
                 $twitchChannel->subtitle = $stream->game_name;
                 $twitchChannel->image = $thumbnail;
@@ -101,7 +100,6 @@ class StreamUpdateService
                 // If stream doesn't exist make it
                 if (!array_key_exists($twitchChannel->getId(), $currentStreamMap)) {
                     $started = new DateTimeImmutable($stream->started_at);
-                    $started = $started->setTimezone(new DateTimeZone(date_default_timezone_get()));
                     $currentStream = new Stream($twitchChannel->getId(), $stream->id, $stream->title, $started);
                     $twitchChannel->lastStream = $started;
                     $this->streamRepository->save($currentStream);
@@ -113,7 +111,7 @@ class StreamUpdateService
             // If the channel is not live on twitch and there was user info
             } elseif (array_key_exists($twitchChannel->name, $offlineUsersMap)) {
                 $user = $offlineUsersMap[$twitchChannel->name];
-                $twitchChannel->lastUpdated = new DateTimeImmutable();
+                $twitchChannel->lastUpdated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                 $twitchChannel->title = $user->display_name;
                 $twitchChannel->subtitle = '';
                 $twitchChannel->image = $user->offline_image_url !== '' ? $user->offline_image_url : $user->profile_image_url;
@@ -123,7 +121,7 @@ class StreamUpdateService
                 // If current stream exists, make it is stopped
                 if (array_key_exists($twitchChannel->getId(), $currentStreamMap)) {
                     $currentStream = $currentStreamMap[$twitchChannel->getId()];
-                    $currentStream->stoppedAt = new DateTimeImmutable();
+                    $currentStream->stoppedAt = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                     $this->streamRepository->save($currentStream);
                 }
 
@@ -193,7 +191,7 @@ class StreamUpdateService
             // If the channel is live on AngelThump
             if (array_key_exists($angelThumpChannel->name, $liveStreamsMap)) {
                 $stream = $liveStreamsMap[$angelThumpChannel->name];
-                $angelThumpChannel->lastUpdated = new DateTimeImmutable();
+                $angelThumpChannel->lastUpdated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                 $angelThumpChannel->title = $stream->user->title;
                 $angelThumpChannel->subtitle = '';
                 $angelThumpChannel->image = $stream->thumbnail_url;
@@ -203,7 +201,6 @@ class StreamUpdateService
                 // If stream doesn't exist make it
                 if (!array_key_exists($angelThumpChannel->getId(), $currentStreamMap)) {
                     $started = new DateTimeImmutable($stream->createdAt);
-                    $started = $started->setTimezone(new DateTimeZone(date_default_timezone_get()));
                     $currentStream = new Stream($angelThumpChannel->getId(), $stream->id, $stream->user->title, $started);
                     $angelThumpChannel->lastStream = $started;
                     $this->streamRepository->save($currentStream);
@@ -215,7 +212,7 @@ class StreamUpdateService
             // If the channel is not live on AngelTHump and there was user info
             } elseif (array_key_exists($angelThumpChannel->name, $offlineUsersMap)) {
                 $user = $offlineUsersMap[$angelThumpChannel->name];
-                $angelThumpChannel->lastUpdated = new DateTimeImmutable();
+                $angelThumpChannel->lastUpdated = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                 $angelThumpChannel->title = $user->display_name;
                 $angelThumpChannel->subtitle = '';
                 $angelThumpChannel->image = $user->offline_banner_url !== '' ? $user->offline_banner_url : $user->profile_logo_url;
@@ -225,7 +222,7 @@ class StreamUpdateService
                 // If current stream exists, make it is stopped
                 if (array_key_exists($angelThumpChannel->getId(), $currentStreamMap)) {
                     $currentStream = $currentStreamMap[$angelThumpChannel->getId()];
-                    $currentStream->stoppedAt = new DateTimeImmutable();
+                    $currentStream->stoppedAt = new DateTimeImmutable('now', new DateTimeZone('UTC'));
                     $this->streamRepository->save($currentStream);
                 }
                 $this->channelRepository->saveChannel($angelThumpChannel);

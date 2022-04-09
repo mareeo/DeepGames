@@ -3,7 +3,8 @@
 
 namespace App\Services;
 
-
+use DateTimeImmutable;
+use DateTimeZone;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\UploadedFile;
@@ -11,12 +12,12 @@ use Nyholm\Psr7\UploadedFile;
 class ImgDumpService
 {
     const MAX_IMG_SIZE = 4096;
-    const IMG_DIR      = "//www.deepgamers.com/userimages/";
+    const IMG_DIR      = '/userimages/';
     const MAX_HEIGHT   = 150;
     const MAX_WIDTH    = 150;
     const IMG_PER_PAGE = 30;
     const allowedMimeTypes = ["image/jpeg","image/png","image/gif"];
-    const UPLOAD_DIRECTORY = __DIR__ . '/../public/userimages';
+    const UPLOAD_DIRECTORY = __DIR__ . '/../../public/userimages';
     const THUMB_DIR = 'thumb';
 
     /** @var \PDO */
@@ -45,7 +46,7 @@ class ImgDumpService
 
 
         /** Query the database **/
-        $sql = "SELECT id, image, title, uploader, pin FROM imgdump ORDER BY id DESC LIMIT :start,:end";
+        $sql = "SELECT imgdump_id, path, title, uploader, uploader_uuid FROM imgdump ORDER BY imgdump_id DESC LIMIT :start,:end";
         $query = $this->dbh->prepare($sql);
         $query->bindValue(':start', $start, \PDO::PARAM_INT);
         $query->bindValue(':end', self::IMG_PER_PAGE, \PDO::PARAM_INT);
@@ -59,59 +60,28 @@ class ImgDumpService
 
             $image = array();
 
-            list($filename) = explode(".", $row["image"]);
+            [$filePath] = explode(".", $row["path"]);
 
-            $thumbnailPath = self::UPLOAD_DIRECTORY . '/' . self::THUMB_DIR . '/' . $filename . '.jpg';
+            $thumbnail = $filePath . '-preview.jpg';
+
+            $thumbnailPath = self::UPLOAD_DIRECTORY . '/' . $thumbnail;
 
             if (file_exists($thumbnailPath)) {
-                $image["thumbnail"] = self::IMG_DIR . self::THUMB_DIR . '/' . urlencode($filename) . ".jpg";
+                $image["thumbnail"] = self::IMG_DIR . '/' . $thumbnail;
             } else {
                 $image["thumbnail"] = "/images/na.png";
             }
 
-            $image["image"] = self::IMG_DIR . urlencode($row["image"]);
+            $image["image"] = self::IMG_DIR . $row["path"];
             $image["title"] = htmlspecialchars($row["title"]);
             $image["uploader"] = htmlspecialchars($row["uploader"]);
-            $image["id"] = $row["id"];
-            $image["pin"] = $row["pin"];
+            $image["imgdump_id"] = $row["imgdump_id"];
+            $image["uploader_uuid"] = $row["uploader_uuid"];
 
             $images[] = $image;
         }
 
         return $images;
-    }
-
-    /**
-     * Displays the images
-     *
-     * Displays the images stored in $images array.  Should
-     * be called after getImages() or getFavoriteImages().
-     */
-    public function displayImages($images) {
-
-        if (count($images) == 0)
-            echo "No images found";
-
-
-        /** Print each image cell **/
-        foreach($images as $image) {
-
-            echo "<li>";
-
-            echo "<a href=" . $image["image"] . ">
-				<img src=" . $image["thumbnail"] . ' class=imgdump-img>
-				</a><br />
-				<span class=comment>' . stripslashes($image["title"]) . "</span><br />
-				<span class=uploader>" . stripslashes($image["uploader"]) . '</span>';
-
-
-            /** Display the remove link if uploader or admin **/
-            if ($image["pin"] == @$_SESSION["pin"] || isset($_SESSION["admin"]) ) {
-                echo '<a href=remove.php?id=' . $image["id"] . ' class="darkButton remove">Remove</a>';
-            }
-
-            echo "</li>";
-        }
     }
 
     /**
@@ -124,20 +94,20 @@ class ImgDumpService
      * @return int[] Array of favorite image ids
      */
     public function displayPageSelect($images) {
-
-
         if (isset($_GET['p']))
             $page = $_GET['p'];
         else
             $page = 0;
 
-        echo '<div style="clear:both; width: 100%; text-align: center; padding: 5px 0px;">';
+        $output = '<div style="clear:both; width: 100%; text-align: center; padding: 5px 0px;">';
         if($page > 0)
-            echo '<a href="?p=' . ($page-1) .'" style="float:left; font-size:18px;"><--Previous</a>';
+            $output.= '<a href="?p=' . ($page-1) .'" style="float:left; font-size:18px;"><--Previous</a>';
 
         if(count($images) == self::IMG_PER_PAGE)
-            echo '<a href="?p=' . ($page+1) . '" style="float:right; font-size:18px;">Next--></a>';
-        echo '</div>';
+            $output .= '<a href="?p=' . ($page+1) . '" style="float:right; font-size:18px;">Next--></a>';
+        $output .= '</div>';
+
+        return $output;
     }
 
     public function submitImage(ServerRequest $request, Response $response)
@@ -171,8 +141,8 @@ class ImgDumpService
         $title = $params['title'] ?? 'Untitled';
         $uploader = $params['uploader'] ?? 'Anonymous';
 
-        $title = substr(trim($title), 0, 100);
-        $uploader = substr(trim($uploader), 0, 30);
+        $title = substr(trim($title), 0, 128);
+        $uploader = substr(trim($uploader), 0, 128);
 
         if($title === '') {
             $title = 'Untitled';
@@ -182,14 +152,33 @@ class ImgDumpService
             $uploader = 'Anonymous';
         }
 
-        $query = $this->dbh->prepare('SELECT MAX(ID) FROM imgdump');
-        $query->execute();
-        $id = $query->fetchColumn();
+        $submitted = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
-        if ($id == null) {
-            $id = 1;
-        } else {
-            ++$id;
+        $userUUID = \Ramsey\Uuid\Uuid::uuid4();
+
+        $insertQuery = $this->dbh->prepare('
+            INSERT INTO imgdump (submitted_timestamp, path, title, uploader, uploader_uuid)
+             VALUES (:timestamp, :path, :title, :uploader, :uuid)'
+        );
+        $insertQuery->bindValue(':timestamp', $submitted->format('Y-m-d H:i:s'));
+        $insertQuery->bindValue(':path', 'TBD');
+        $insertQuery->bindValue(':title', $title);
+        $insertQuery->bindValue(':uploader', $uploader);
+        $insertQuery->bindValue(':uuid', $userUUID->toString());
+
+        $insertQuery->execute();
+
+        $id = (int)$this->dbh->lastInsertId();
+
+        $firstDigit = (int)$id % 10;
+        $secondDigit = intval((int)$id / 10) % 10;
+
+        $directory = $firstDigit . '/' . $secondDigit . '/';
+
+        $absoluteDirectory = self::UPLOAD_DIRECTORY . '/' . $directory;
+
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0777, true);
         }
 
         $slug = preg_replace('/[^a-zA-Z0-9\s]/', "", $title);
@@ -201,26 +190,19 @@ class ImgDumpService
         // Prepare the destination filename
         $destFileName = "$id-$slug.$extension";
 
-        if (!isset($_SESSION['pin'])) {
-            $pin = rand(1000, 9999);
-            $_SESSION['pin'] = $pin;
-            setcookie("User", ":$pin", time() + 60*60*24*365, '/');
-        } else {
-            $pin = $_SESSION['pin'];
-        }
+        $filePath = $directory . $destFileName;
 
-        $insertQuery = $this->dbh->prepare("INSERT INTO imgdump (image, title, uploader, pin, submitted) VALUES (:image, :title, :uploader, :pin, :submitted)");
-        $insertQuery->bindValue(':image', $destFileName);
-        $insertQuery->bindValue(':title', $title);
-        $insertQuery->bindValue(':uploader', $uploader);
-        $insertQuery->bindValue(':pin', $pin);
-        $insertQuery->bindValue(':submitted', date("Y-m-d"));
+        /** @todo UUID in cookie */
 
-        if(!$insertQuery->execute()) {
-            return $response->withStatus(400)->withJson(['error' => 'Database error']);
-        }
+        $updateQuery = $this->dbh->prepare('
+            UPDATE imgdump
+            SET path = :path
+            WHERE imgdump_id = :id
+        ');
 
-        $targetPath = self::UPLOAD_DIRECTORY . '/' . $destFileName;
+        $updateQuery->execute([':path' => $filePath, ':id' => $id]);
+
+        $targetPath = self::UPLOAD_DIRECTORY . '/' . $filePath;
 
         $uploadedFile->moveTo($targetPath);
 
@@ -228,7 +210,7 @@ class ImgDumpService
 
         // If the image is larger than 2500*2500 we can't generate a thumbnail
         if (($size[0] * $size[1] < 6250000)) {
-            $this->makeThumb($destFileName, $extension);
+            $this->makeThumb($filePath, $extension);
         }
 
         $response->getBody()->write('<META HTTP-EQUIV="Refresh" CONTENT="1; URL=/imgdump/"><h1>File Uploaded Successfully!</h1><br><a href="../../public/index.php">Back to Gallery</a>');

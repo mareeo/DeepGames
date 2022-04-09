@@ -49,7 +49,7 @@ class ApiChannelsAction
 
         // Sort the live channels by viewer count
         usort($output['live'], function (Channel $a, Channel $b) {
-            if($a->viewersviewers == $b->viewers)
+            if($a->viewers == $b->viewers)
                 return 0;
 
             if($a->viewers < $b->viewers)
