@@ -18,7 +18,6 @@ class ImgDumpService
     const IMG_PER_PAGE = 30;
     const allowedMimeTypes = ["image/jpeg","image/png","image/gif"];
     const UPLOAD_DIRECTORY = __DIR__ . '/../../public/userimages';
-    const THUMB_DIR = 'thumb';
 
     /** @var \PDO */
     private $dbh;
@@ -257,10 +256,10 @@ class ImgDumpService
         }
 
         $i = strrpos($filename,".");
-        $thumb = substr($filename,0,$i) . ".jpg";
+        $thumb = substr($filename,0,$i) . "-preview.jpg";
 
         $fullImagePath = self::UPLOAD_DIRECTORY . '/' . $filename;
-        $thumbnailPath = self::UPLOAD_DIRECTORY . '/' . self::THUMB_DIR . '/' . $thumb;
+        $thumbnailPath = self::UPLOAD_DIRECTORY . '/' . $thumb;
 
         unlink($fullImagePath);
         unlink($thumbnailPath);
@@ -276,7 +275,8 @@ class ImgDumpService
         list($filename, $extension) = explode(".", $file);
 
         $fullImagePath = self::UPLOAD_DIRECTORY . '/' . $file;
-        $thumbnailPath = self::UPLOAD_DIRECTORY . '/' . self::THUMB_DIR . "/$filename.jpg";
+        $thumbnailPath = self::UPLOAD_DIRECTORY . "/$filename-preview.jpg";
+
         // Make a new image depending upon file type
         if ($type == 'jpeg') {
             $src = imagecreatefromjpeg($fullImagePath);
@@ -292,18 +292,17 @@ class ImgDumpService
 
         // Calculate new height and width
         if ( $width < $height ) {
-            $newWidth = $width * (self::MAX_WIDTH / $height);
+            $newWidth = intval($width * (self::MAX_WIDTH / $height));
             $newHeight = self::MAX_HEIGHT;
         } else {
             $newWidth = self::MAX_WIDTH;
-            $newHeight = $height * (self::MAX_HEIGHT / $width);
+            $newHeight = intval($height * (self::MAX_HEIGHT / $width));
         }
 
         // Copy the image to the new canvas
         $new = imagecreatetruecolor($newWidth, $newHeight);
         imagecopyresampled($new, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-
-
+        
         imagejpeg($new, $thumbnailPath, 90);
 
         // Clean up
