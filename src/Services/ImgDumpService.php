@@ -5,6 +5,7 @@ namespace App\Services;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use GdImage;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\UploadedFile;
@@ -13,8 +14,8 @@ class ImgDumpService
 {
     const MAX_IMG_SIZE = 4096;
     const IMG_DIR      = '/userimages/';
-    const MAX_HEIGHT   = 150;
-    const MAX_WIDTH    = 150;
+    const MAX_HEIGHT   = 400;
+    const MAX_WIDTH    = 400;
     const IMG_PER_PAGE = 30;
     const allowedMimeTypes = ["image/jpeg","image/png","image/gif"];
     const UPLOAD_DIRECTORY = __DIR__ . '/../../public/userimages';
@@ -145,6 +146,11 @@ class ImgDumpService
 
         if($title === '') {
             $title = 'Untitled';
+            $slug = '';
+        } else {
+            $slug = preg_replace('/[^a-zA-Z0-9\s]/', "", $title);
+            $slug = str_replace(" ", "-", $slug);
+            $slug = strtolower($slug);
         }
 
         if ($uploader === '') {
@@ -169,10 +175,7 @@ class ImgDumpService
 
         $id = (int)$this->dbh->lastInsertId();
 
-        $firstDigit = (int)$id % 10;
-        $secondDigit = intval((int)$id / 10) % 10;
-
-        $directory = $firstDigit . '/' . $secondDigit . '/';
+        $directory = $submitted->format('Y') . '/' . $submitted->format('n') . '/';
 
         $absoluteDirectory = self::UPLOAD_DIRECTORY . '/' . $directory;
 
@@ -180,14 +183,16 @@ class ImgDumpService
             mkdir($absoluteDirectory, 0777, true);
         }
 
-        $slug = preg_replace('/[^a-zA-Z0-9\s]/', "", $title);
-        $slug = str_replace(" ", "-", $slug);
-        $slug = strtolower($slug);
+        
 
         $extension = explode('/', $uploadedFile->getClientMediaType())[1];
 
         // Prepare the destination filename
-        $destFileName = "$id-$slug.$extension";
+        if (strlen($slug) > 0) {
+            $destFileName = "$id-$slug.$extension";
+        } else {
+            $destFileName = "$id.$extension";
+        }
 
         $filePath = $directory . $destFileName;
 
@@ -269,7 +274,7 @@ class ImgDumpService
         return $response;
     }
 
-    private function makeThumb($file, $type)
+    public function makeThumb($file, $type)
     {
         // Make a .jpg with the new image
         list($filename, $extension) = explode(".", $file);
@@ -278,12 +283,16 @@ class ImgDumpService
         $thumbnailPath = self::UPLOAD_DIRECTORY . "/$filename-preview.jpg";
 
         // Make a new image depending upon file type
-        if ($type == 'jpeg') {
+        if ($type == 'jpeg' || $type == 'jpg') {
             $src = imagecreatefromjpeg($fullImagePath);
         } else if ( $type == 'png' ) {
             $src = imagecreatefrompng($fullImagePath);
         } else if ( $type == 'gif' ) {
             $src = imagecreatefromgif($fullImagePath);
+        }
+
+        if (!$src instanceof GdImage) {
+            return;
         }
 
         // Get image dimensions

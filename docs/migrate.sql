@@ -50,3 +50,13 @@ INSERT INTO `deepgamers`.`channel` (`name`, `service`, `last_updated`, `title`, 
 INSERT INTO `deepgamers`.`channel` (`name`, `service`, `last_updated`, `title`, `subtitle`, `image`, `live`, `viewers`) VALUES ('harmagica', 'twitch', '2022-03-08 23:32:53', 'harmagica', '', 'https://static-cdn.jtvnw.net/user-default-pictures-uv/75305d54-c7cc-40d1-bb9c-91fbe85943c7-profile_image-300x300.png', '0', '0');
 INSERT INTO `deepgamers`.`channel` (`name`, `service`, `last_updated`, `title`, `subtitle`, `image`, `live`, `viewers`) VALUES ('jesse3s', 'twitch', '2022-03-08 23:32:53', 'jesse3s', '', 'https://static-cdn.jtvnw.net/jtv_user_pictures/c9ff804becdd8c67-channel_offline_image-1920x1080.jpeg', '0', '0');
 INSERT INTO `deepgamers`.`channel` (`name`, `service`, `last_updated`, `title`, `subtitle`, `image`, `live`, `viewers`) VALUES ('justfrenchy', 'twitch', '2022-03-08 23:32:53', 'JustFrenchy', '', 'https://static-cdn.jtvnw.net/jtv_user_pictures/f512222f-8b86-4eb2-bba8-89a73b90d28e-profile_image-300x300.png', '0', '0');
+
+-- Update imgdump
+ALTER TABLE `deepgamers`.`imgdump` 
+DROP COLUMN `pin`,
+ADD COLUMN `uploader_uuid` VARCHAR(36) NULL DEFAULT NULL AFTER `uploader`,
+CHANGE COLUMN `submitted` `submitted_timestamp` DATETIME NOT NULL AFTER `imgdump_id`,
+CHANGE COLUMN `id` `imgdump_id` INT NOT NULL AUTO_INCREMENT ,
+CHANGE COLUMN `image` `path` VARCHAR(128) CHARACTER SET 'utf8' NOT NULL ,
+CHANGE COLUMN `title` `title` VARCHAR(128) CHARACTER SET 'utf8' NOT NULL ,
+CHANGE COLUMN `uploader` `uploader` VARCHAR(128) CHARACTER SET 'utf8' NOT NULL ;
