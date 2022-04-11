@@ -9,6 +9,7 @@ use GdImage;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\UploadedFile;
+use Ramsey\Uuid\Uuid;
 
 class ImgDumpService
 {
@@ -144,6 +145,15 @@ class ImgDumpService
         $title = substr(trim($title), 0, 128);
         $uploader = substr(trim($uploader), 0, 128);
 
+        $cookies = $request->getCookieParams();
+
+        if (isset($cookies['uuid']) && Uuid::isValid($cookies['uuid'])) {
+            $uploaderUuid = $cookies['uuid'];
+        } else {
+            $uploaderUuid = Uuid::uuid4();
+            setcookie('uuid', $uploaderUuid, time()+60*60*24*365*10, '/');
+        }
+
         if($title === '') {
             $title = 'Untitled';
             $slug = '';
@@ -159,8 +169,6 @@ class ImgDumpService
 
         $submitted = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
-        $userUUID = \Ramsey\Uuid\Uuid::uuid4();
-
         $insertQuery = $this->dbh->prepare('
             INSERT INTO imgdump (submitted_timestamp, path, title, uploader, uploader_uuid)
              VALUES (:timestamp, :path, :title, :uploader, :uuid)'
@@ -169,7 +177,7 @@ class ImgDumpService
         $insertQuery->bindValue(':path', 'TBD');
         $insertQuery->bindValue(':title', $title);
         $insertQuery->bindValue(':uploader', $uploader);
-        $insertQuery->bindValue(':uuid', $userUUID->toString());
+        $insertQuery->bindValue(':uuid', $uploaderUuid);
 
         $insertQuery->execute();
 
@@ -233,9 +241,8 @@ class ImgDumpService
             return $response->withStatus(400);
         }
 
-        $query = $this->dbh->prepare('SELECT pin, image FROM imgdump WHERE id=:id');
-        $query->bindValue(':id', $id);
-        $query->execute();
+        $query = $this->dbh->prepare('SELECT uploader_uuid, path FROM imgdump WHERE imgdump_id = ?');
+        $query->execute([$id]);
 
         $row = $query->fetch(\PDO::FETCH_ASSOC);
 
@@ -244,30 +251,31 @@ class ImgDumpService
             return $response->withStatus(404);
         }
 
-        $pin = (int)$row['pin'];
-        $filename = $row['image'];
+        $path = $row['path'];
 
-        if (!isset($_SESSION['pin']) || $_SESSION['pin'] !== $pin) {
+        $cookies = $request->getCookieParams();
+
+        if (!isset($cookies['uuid']) || !Uuid::isValid($cookies['uuid'] || $cookies['uuid'] !== $row['uploader_uuid'])) {
             $response->getBody()->write(json_encode(['error' => 'Not authorized to remove image']));
             return $response->withStatus(401);
         }
 
-        $deleteQuery = $this->dbh->prepare("DELETE FROM imgdump WHERE id=:id");
-        $deleteQuery->bindValue(':id', $id);
+        $deleteQuery = $this->dbh->prepare("DELETE FROM imgdump WHERE imgdump_id= ?");
+        $deleteQuery->execute([$id]);
 
-        if (!$deleteQuery->execute()) {
-            $response->getBody()->write(json_encode(['error' => 'Database error']));
-            return $response->withStatus(500);
-        }
+        $i = strrpos($path,".");
+        $thumb = substr($path,0,$i) . "-preview.jpg";
 
-        $i = strrpos($filename,".");
-        $thumb = substr($filename,0,$i) . "-preview.jpg";
-
-        $fullImagePath = self::UPLOAD_DIRECTORY . '/' . $filename;
+        $fullImagePath = self::UPLOAD_DIRECTORY . '/' . $path;
         $thumbnailPath = self::UPLOAD_DIRECTORY . '/' . $thumb;
 
-        unlink($fullImagePath);
-        unlink($thumbnailPath);
+        if (file_exists($fullImagePath)) {
+            unlink($fullImagePath);
+        }
+
+        if (file_exists($thumbnailPath)) {
+            unlink($thumbnailPath);
+        }
 
         $response->getBody()->write('<META HTTP-EQUIV="Refresh" CONTENT="1; URL=/imgdump/"><h1>File Deleted Successfully!</h1><br><a href="/imgdump/">Back to Gallery</a>');
 

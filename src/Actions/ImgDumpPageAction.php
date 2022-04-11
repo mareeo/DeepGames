@@ -28,9 +28,13 @@ class ImgDumpPageAction
         $images = $this->imgDump->getImages();
         $pageSelectHtml = $this->imgDump->displayPageSelect($images);
 
+        $cookies = $request->getCookieParams();
+
+        $uploaderUuid = $cookies['uuid'] ?? null;
+
         $body = $this->plates->render('imgdump', [
             'images' => $images,
-            'uploaderUuid' => null,
+            'uploaderUuid' => $uploaderUuid,
             'pageSelectHtml' => $pageSelectHtml
         ]);
         $response->getBody()->write($body);

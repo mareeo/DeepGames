@@ -53,8 +53,17 @@ use League\Plates\Extension\RenderContext\RenderContext;
                     <span class=uploader><?= stripslashes($image["uploader"])?></span>
 
                     <?php 
+
+                    $allowRemove = false;
+
+                    if (isset($_SESSION["admin"])) {
+                        $allowRemove = true;
+                    } elseif ($image["uploader_uuid"] !== null && $image["uploader_uuid"] === $uploaderUuid) {
+                        $allowRemove =  true;
+                    }
+
                     /** Display the remove link if uploader or admin **/
-                    if ($image["uploader_uuid"] === $uploaderUuid || isset($_SESSION["admin"]) ) {
+                    if ($allowRemove) {
                     ?>
                         <a href="remove.php?id=<?=$image["imgdump_id"]?>" class="darkButton remove">Remove</a>
                     <?php } ?>
