@@ -255,7 +255,7 @@ class ImgDumpService
 
         $cookies = $request->getCookieParams();
 
-        if (!isset($cookies['uuid']) || !Uuid::isValid($cookies['uuid'] || $cookies['uuid'] !== $row['uploader_uuid'])) {
+        if (!isset($cookies['uuid']) || !Uuid::isValid($cookies['uuid']) || $cookies['uuid'] !== $row['uploader_uuid']) {
             $response->getBody()->write(json_encode(['error' => 'Not authorized to remove image']));
             return $response->withStatus(401);
         }
