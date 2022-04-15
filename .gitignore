@@ -3,3 +3,5 @@ vendor/
 test.php
 app/settings.private.php
 var/
+docs/model.mwb.bak
+node_modules/

@@ -3,16 +3,16 @@
 
 namespace App\Actions;
 
-use App\ImgDump;
+use App\Services\ImgDumpService;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 
 class ImgDumpSubmitAction
 {
-    /** @var ImgDump */
+    /** @var ImgDumpService */
     private $imgDump;
 
-    public function __construct(ImgDump $imgDump)
+    public function __construct(ImgDumpService $imgDump)
     {
         $this->imgDump = $imgDump;
     }

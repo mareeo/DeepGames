@@ -37,15 +37,40 @@ use League\Plates\Extension\RenderContext\RenderContext;
 
     <div id=picturesdiv>
         <ul id=pictures>
-
             <?php
 
-            /** @var DeepGames\ImgDump $imgDump */
-            $images = $imgDump->getImages();
-            $imgDump->displayImages($images);
-            $imgDump->displayPageSelect($images);
-            ?>
+            if (count($images) == 0) {
+                echo "No images found";
+            }
 
+            /** Print each image cell **/
+            foreach($images as $image) {
+                ?>
+                <li>
+                    <a href="<?= $image["image"] ?>"><img src="<?= $image["thumbnail"] ?>" class=imgdump-img></a>
+                    <br />
+                    <span class=comment><?= stripslashes($image["title"]) ?></span><br />
+                    <span class=uploader><?= stripslashes($image["uploader"])?></span>
+
+                    <?php 
+
+                    $allowRemove = false;
+
+                    if (isset($_SESSION["admin"])) {
+                        $allowRemove = true;
+                    } elseif ($image["uploader_uuid"] !== null && $image["uploader_uuid"] === $uploaderUuid) {
+                        $allowRemove =  true;
+                    }
+
+                    /** Display the remove link if uploader or admin **/
+                    if ($allowRemove) {
+                    ?>
+                        <a href="remove.php?id=<?=$image["imgdump_id"]?>" class="darkButton remove">Remove</a>
+                    <?php } ?>
+                </li>
+            <?php }
+            echo $pageSelectHtml;
+            ?>
         </ul>
     </div>
     <div style="clear:both;"></div>

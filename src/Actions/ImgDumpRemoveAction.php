@@ -3,16 +3,16 @@
 
 namespace App\Actions;
 
-use DeepGamers\ImgDump;
+use App\Services\ImgDumpService;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 
 class ImgDumpRemoveAction
 {
-    /** @var ImgDump */
+    /** @var ImgDumpService */
     private $imgDump;
 
-    public function __construct(ImgDump $imgDump)
+    public function __construct(ImgDumpService $imgDump)
     {
         $this->imgDump = $imgDump;
     }

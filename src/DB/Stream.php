@@ -1,35 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DB;
 
-use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 
 class Stream
 {
-    private int $id;
-    public string $name;
-    public string $service;
-    public ?DateTime $lastUpdated;
-    public ?DateTime $lastLive;
-    public ?string $title;
-    public ?string $game;
-    public ?string $thumbnail;
-    public bool $live;
-    public int $viewers;
+    private ?int $id;
+    public int $channelId;
+    public int $serviceStreamId;
+    public string $title;
+    public DateTimeImmutable $startedAt;
+    public ?DateTimeImmutable $stoppedAt;
 
-    public ?int $twitchGameId;
-
-    public function __construct(string $name, string $service, bool $live, string $thumbnail, string $title, int $viewers)
-    {
-        $this->name = $name;
-        $this->service = $service;
-        $this->live = $live;
-        $this->thumbnail = $thumbnail;
+    public function __construct(
+        int $channelId,
+        int $serviceStreamId,
+        string $title,
+        DateTimeInterface $startedAt,
+        ?DateTimeInterface $stoppedAt = null
+    ) {
+        $this->id = null;
+        $this->channelId = $channelId;
+        $this->serviceStreamId = $serviceStreamId;
         $this->title = $title;
-        $this->viewers = $viewers;
-        $this->game = null;
-        $this->twitchGameId = null;
+        $this->startedAt = DateTimeImmutable::createFromInterface($startedAt);
+
+        if ($stoppedAt instanceof DateTimeInterface) {
+            $this->stoppedAt = DateTimeImmutable::createFromInterface($stoppedAt);
+        } else {
+            $this->stoppedAt = null;
+        }
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
+    public function setId(int $id): void
+    {
+        if ($this->id === null) {
+            $this->id = $id;
+        }
+    }
 }
