@@ -196,7 +196,7 @@ class StreamUpdateService
                 $angelThumpChannel->subtitle = '';
                 $angelThumpChannel->image = $stream->thumbnail_url;
                 $angelThumpChannel->live = true;
-                $angelThumpChannel->viewers = $stream->viewer_count;
+                $angelThumpChannel->viewers = (int)$stream->viewer_count;
 
                 // If stream doesn't exist make it
                 if (!array_key_exists($angelThumpChannel->getId(), $currentStreamMap)) {

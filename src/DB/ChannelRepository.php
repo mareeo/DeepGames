@@ -82,7 +82,7 @@ class ChannelRepository
             ':title' => $channel->title,
             ':subtitle'=> $channel->subtitle,
             ':image' => $channel->image,
-            ':live' => $channel->live,
+            ':live' => (int)$channel->live,
             ':viewers' => $channel->viewers,
             ':lastStream' => $channel->lastStream?->format('Y-m-d H:i:s')
         ];
@@ -104,7 +104,7 @@ class ChannelRepository
             ':title' => $channel->title,
             ':subtitle'=> $channel->subtitle,
             ':image' => $channel->image,
-            ':live' => $channel->live,
+            ':live' => (int)$channel->live,
             ':viewers' => $channel->viewers,
             ':lastStream' => $channel->lastStream?->format('Y-m-d H:i:s')
         ];

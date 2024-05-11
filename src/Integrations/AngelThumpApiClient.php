@@ -26,7 +26,7 @@ class AngelThumpApiClient
                         "type": "string"
                     },
                     "viewer_count": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "createdAt": {
                         "type": "string"
