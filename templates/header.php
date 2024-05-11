@@ -31,7 +31,6 @@ $quote = $quotes[array_rand($quotes)];
     </div>
     <div id="header-right">
         <ul class="menu">
-        <li><a href="/imgdump/" target="_blank">imgDump</a></li>
         </ul>
     </div>
 

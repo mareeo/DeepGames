@@ -54,21 +54,6 @@ CREATE TABLE IF NOT EXISTS `deepgamers`.`stream` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-
--- -----------------------------------------------------
--- Table `deepgamers`.`imgdump`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `deepgamers`.`imgdump` (
-  `imgdump_id` INT NOT NULL AUTO_INCREMENT,
-  `submitted_timestamp` DATETIME NOT NULL,
-  `path` VARCHAR(128) NOT NULL,
-  `title` VARCHAR(128) NOT NULL,
-  `uploader` VARCHAR(128) NOT NULL,
-  `uploader_uuid` VARCHAR(36) NULL,
-  PRIMARY KEY (`imgdump_id`))
-ENGINE = InnoDB;
-
-
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

@@ -12,10 +12,4 @@ return function (App $app) {
         $group->get('/', RootApiAction::class);
         $group->get('/channels', \App\Actions\ApiChannelsAction::class);
     });
-
-    $app->group('/imgdump', function(\Slim\Routing\RouteCollectorProxy $group) {
-        $group->get('/', \App\Actions\ImgDumpPageAction::class);
-        $group->post('/submit.php', \App\Actions\ImgDumpSubmitAction::class);
-        $group->get('/remove.php', \App\Actions\ImgDumpRemoveAction::class);
-    });
 };

@@ -3,8 +3,7 @@
     "description": "Deep Games website",
     "type": "project",
     "require": {
-        "php": "^8.0",
-        "ext-gd": "*",
+        "php": "^8.3",
         "ext-pdo": "*",
         "guzzlehttp/guzzle": "^7.0",
         "justinrainbow/json-schema": "^5.2",
