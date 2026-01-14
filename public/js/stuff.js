@@ -432,7 +432,7 @@ function pickFirstChannel() {
    if(liveChannels.length > 0) {
       changeChannel(liveChannels[0]);
    } else {
-      // $("#player").html("No channels live");
+      $("#player").html("No channels live");
    }
 }
 
